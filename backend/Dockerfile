@@ -1,4 +1,4 @@
-FROM ruby:3.1.0
+FROM ruby:3.2.0
 
 # Install dependencies
 RUN apt-get update -qq && apt-get install -y \
@@ -7,6 +7,10 @@ RUN apt-get update -qq && apt-get install -y \
   nodejs \
   npm \
   && rm -rf /var/lib/apt/lists/*
+
+# Update RubyGems and Bundler
+RUN gem update --system
+RUN gem install bundler
 
 # Set working directory
 WORKDIR /app
