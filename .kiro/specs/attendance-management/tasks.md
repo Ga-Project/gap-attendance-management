@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. プロジェクト基盤とDevContainer環境の構築
+- [x] 1. プロジェクト基盤とDevContainer環境の構築
   - Docker Compose設定でPostgreSQL、Rails API、Reactの開発環境を構築
   - DevContainer設定でVS Code統合開発環境を自動構築
   - GitHub Actions CI/CDパイプラインの基本設定を実装
