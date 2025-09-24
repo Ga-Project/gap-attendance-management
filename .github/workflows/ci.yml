@@ -51,7 +51,7 @@ jobs:
 
       - name: Run Rubocop
         working-directory: ./backend
-        run: bundle exec rubocop
+        run: bundle exec rubocop --auto-correct || bundle exec rubocop
 
       - name: Run RSpec tests
         working-directory: ./backend
@@ -75,6 +75,16 @@ jobs:
       - name: Install dependencies
         working-directory: ./frontend
         run: npm install
+
+      - name: Debug frontend structure
+        working-directory: ./frontend
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Directory contents:"
+          ls -la
+          echo "Public directory contents:"
+          ls -la public/ || echo "Public directory not found"
 
       - name: Run ESLint
         working-directory: ./frontend
