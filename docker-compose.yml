@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:14
@@ -32,7 +30,7 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:password@db:5432/attendance_development
       RAILS_ENV: development
-    command: bash -c "bundle install && rails server -b 0.0.0.0"
+    command: sh -c "bundle install && rails server -b 0.0.0.0"
 
   frontend:
     build:
@@ -47,7 +45,7 @@ services:
       - backend
     environment:
       REACT_APP_API_URL: http://localhost:3001
-    command: bash -c "npm install && npm start"
+    command: sh -c "npm install && npm start"
 
 volumes:
   postgres_data:
