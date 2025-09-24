@@ -1,9 +1,9 @@
 class HealthController < ApplicationController
   def check
-    render json: { 
-      status: 'ok', 
+    render json: {
+      status: 'ok',
       message: 'Attendance Management API is running',
-      timestamp: Time.current 
+      timestamp: Time.current
     }
   end
 end
