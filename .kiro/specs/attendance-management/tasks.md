@@ -37,7 +37,7 @@
   - 勤務時間と休憩時間の計算ロジックを実装
   - _Requirements: 3.2, 4.4, 5.4, 10.3_
 
-- [ ] 5.3 AttendanceRecordモデルの作成
+- [x] 5.3 AttendanceRecordモデルの作成
   - 個別打刻記録を管理するAttendanceRecordモデルを実装
   - 打刻タイプ（clock_in/clock_out/break_start/break_end）のenum設定
   - タイムスタンプの正確な記録機能を実装
