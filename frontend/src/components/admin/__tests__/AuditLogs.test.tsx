@@ -118,7 +118,7 @@ describe('AuditLogs', () => {
     });
 
     expect(screen.getByText('Target User')).toBeInTheDocument();
-    expect(screen.getByText('update_attendance')).toBeInTheDocument();
+    expect(screen.getByText('勤怠修正')).toBeInTheDocument();
     expect(screen.getByText('Employee requested time correction')).toBeInTheDocument();
   });
 
