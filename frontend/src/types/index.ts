@@ -36,16 +36,38 @@ export interface ApiError {
     status: number;
 }
 
-// Attendance types (for future use)
+// Attendance types
 export interface AttendanceRecord {
-    id: string;
-    user_id: string;
+    id: number;
+    record_type: 'clock_in' | 'clock_out' | 'break_start' | 'break_end';
+    timestamp: string;
+}
+
+export interface Attendance {
+    id: number;
     date: string;
+    status: 'not_started' | 'clocked_in' | 'on_break' | 'clocked_out';
     clock_in_time?: string;
     clock_out_time?: string;
     total_work_minutes: number;
     total_break_minutes: number;
-    status: 'not_started' | 'clocked_in' | 'on_break' | 'clocked_out';
-    created_at: string;
-    updated_at: string;
+    formatted_work_time: string;
+    formatted_break_time: string;
+    formatted_total_office_time: string;
+    complete: boolean;
+    in_progress: boolean;
+    records: AttendanceRecord[];
+}
+
+export interface TodayAttendanceResponse {
+    attendance: Attendance;
+    can_clock_in: boolean;
+    can_clock_out: boolean;
+    can_start_break: boolean;
+    can_end_break: boolean;
+}
+
+export interface AttendanceActionResponse {
+    message: string;
+    attendance: Attendance;
 }
