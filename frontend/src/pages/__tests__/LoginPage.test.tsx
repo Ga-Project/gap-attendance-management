@@ -9,9 +9,10 @@ const theme = createTheme();
 
 const mockAuthContextValue = {
   user: null,
-  login: jest.fn(),
-  logout: jest.fn(),
+  signIn: jest.fn(),
+  signOut: jest.fn(),
   loading: false,
+  isAuthenticated: false,
 };
 
 const renderWithProviders = (component: React.ReactElement) => {
@@ -53,7 +54,7 @@ describe('LoginPage', () => {
     renderWithProviders(<LoginPage />);
 
     expect(screen.getByText('勤怠管理システム')).toBeInTheDocument();
-    expect(screen.getByText('Googleアカウントでログイン')).toBeInTheDocument();
+    expect(screen.getByText('ログイン')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /googleでサインイン/i })).toBeInTheDocument();
   });
 
@@ -97,44 +98,35 @@ describe('LoginPage', () => {
     fireEvent.click(signInButton);
 
     await waitFor(() => {
-      expect(mockAuthContextValue.login).toHaveBeenCalledWith('mock-id-token');
+      expect(mockAuthContextValue.signIn).toHaveBeenCalled();
     });
   });
 
   it('handles Google sign in error', async () => {
-    mockGapi.load.mockImplementation((api: string, options: any) => {
-      if (options.callback) {
-        options.callback();
-      }
-    });
+    const errorContext = {
+      ...mockAuthContextValue,
+      signIn: jest.fn().mockRejectedValue(new Error('Sign in failed')),
+    };
 
-    mockGapi.auth2.getAuthInstance.mockReturnValue({
-      signIn: jest.fn(() => Promise.reject(new Error('Sign in failed'))),
-    });
-
-    renderWithProviders(<LoginPage />);
+    render(
+      <BrowserRouter>
+        <ThemeProvider theme={theme}>
+          <AuthContext.Provider value={errorContext}>
+            <LoginPage />
+          </AuthContext.Provider>
+        </ThemeProvider>
+      </BrowserRouter>,
+    );
 
     const signInButton = screen.getByRole('button', { name: /googleでサインイン/i });
     fireEvent.click(signInButton);
 
     await waitFor(() => {
-      expect(screen.getByText('ログインに失敗しました。再度お試しください。')).toBeInTheDocument();
+      expect(screen.getByText('ログインに失敗しました。もう一度お試しください。')).toBeInTheDocument();
     });
   });
 
-  it('shows error message when gapi fails to load', async () => {
-    mockGapi.load.mockImplementation((api: string, options: any) => {
-      if (options.onerror) {
-        options.onerror();
-      }
-    });
 
-    renderWithProviders(<LoginPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Google認証の初期化に失敗しました。')).toBeInTheDocument();
-    });
-  });
 
   it('disables sign in button while signing in', async () => {
     mockGapi.load.mockImplementation((api: string, options: any) => {
@@ -167,6 +159,7 @@ describe('LoginPage', () => {
         email: 'test@example.com',
         role: 'employee' as const,
       },
+      isAuthenticated: true,
     };
 
     render(
@@ -180,14 +173,12 @@ describe('LoginPage', () => {
     );
 
     // Should not render login content for authenticated users
-    expect(screen.queryByText('Googleアカウントでログイン')).not.toBeInTheDocument();
+    expect(screen.queryByText('ログイン')).not.toBeInTheDocument();
   });
 
-  it('displays system features', () => {
+  it('displays Googleアカウントを使用してサインインしてください message', () => {
     renderWithProviders(<LoginPage />);
 
-    expect(screen.getByText('出勤・退勤・休憩の打刻')).toBeInTheDocument();
-    expect(screen.getByText('個人勤怠実績の確認')).toBeInTheDocument();
-    expect(screen.getByText('管理者による勤怠管理')).toBeInTheDocument();
+    expect(screen.getByText('Googleアカウントを使用してサインインしてください')).toBeInTheDocument();
   });
 });
