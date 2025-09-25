@@ -12,6 +12,8 @@ import {
     MenuItem,
     Grid,
 } from '@mui/material';
+import { AdminPanelSettings } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import TimeClockWidget from '../components/TimeClockWidget';
 import AttendanceHistory from '../components/AttendanceHistory';
@@ -19,6 +21,7 @@ import { TodayAttendanceResponse } from '../types';
 
 const Dashboard: React.FC = () => {
     const { user, signOut } = useAuth();
+    const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const [showAttendanceHistory, setShowAttendanceHistory] = React.useState(false);
 
@@ -119,14 +122,14 @@ const Dashboard: React.FC = () => {
                                     月次レポート
                                 </Button>
                                 {user?.role === 'admin' && (
-                                    <>
-                                        <Button variant="outlined" disabled>
-                                            全社員管理
-                                        </Button>
-                                        <Button variant="outlined" disabled>
-                                            CSVエクスポート
-                                        </Button>
-                                    </>
+                                    <Button 
+                                        variant="contained" 
+                                        color="secondary"
+                                        startIcon={<AdminPanelSettings />}
+                                        onClick={() => navigate('/admin')}
+                                    >
+                                        管理者画面
+                                    </Button>
                                 )}
                             </Box>
                         </Paper>
