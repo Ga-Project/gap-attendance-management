@@ -1,7 +1,7 @@
 class Attendance < ApplicationRecord
   # Associations
   belongs_to :user
-  # NOTE: attendance_records association will be added in task 5.3
+  has_many :attendance_records, dependent: :destroy
 
   # Enums
   enum status: {
