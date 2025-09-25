@@ -60,14 +60,14 @@ class GoogleAuthService
 
       if user
         # Update user info if it has changed
-        user.update(
+        user.update!(
           email: user_info['email'],
           name: user_info['name']
         )
         user
       else
         # Create new user
-        User.create(
+        User.create!(
           google_id: google_id,
           email: user_info['email'],
           name: user_info['name'],
