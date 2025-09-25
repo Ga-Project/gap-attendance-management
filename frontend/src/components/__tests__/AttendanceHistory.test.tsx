@@ -12,18 +12,21 @@ const mockedAttendanceService = AttendanceService as jest.Mocked<typeof Attendan
 // Mock MUI date picker components
 jest.mock('@mui/x-date-pickers/DatePicker', () => {
     return {
-        DatePicker: ({ label, value, onChange, renderInput }: any) => {
+        DatePicker: ({ label, value, onChange }: any) => {
             const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                 const date = e.target.value ? new Date(e.target.value) : null;
                 onChange(date);
             };
             
-            return renderInput({
-                label,
-                value: value ? value.toISOString().split('T')[0] : '',
-                onChange: handleChange,
-                type: 'date',
-            });
+            return (
+                <input
+                    data-testid={`date-picker-${label}`}
+                    type="date"
+                    value={value ? value.toISOString().split('T')[0] : ''}
+                    onChange={handleChange}
+                    aria-label={label}
+                />
+            );
         },
     };
 });
