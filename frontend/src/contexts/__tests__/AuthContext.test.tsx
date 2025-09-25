@@ -2,10 +2,15 @@ import React from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import { AuthProvider, AuthContext } from '../AuthContext';
 import api from '../../services/api';
+import googleAuthService from '../../services/googleAuth';
 
 // Mock the API
 jest.mock('../../services/api');
 const mockedApi = api as jest.Mocked<typeof api>;
+
+// Mock Google Auth Service
+jest.mock('../../services/googleAuth');
+const mockedGoogleAuth = googleAuthService as jest.Mocked<typeof googleAuthService>;
 
 // Mock localStorage
 const mockLocalStorage = {
@@ -20,14 +25,18 @@ Object.defineProperty(window, 'localStorage', {
 });
 
 const TestComponent = () => {
-  const { user, login, logout, loading } = React.useContext(AuthContext);
+  const context = React.useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  const { user, signIn, signOut, loading } = context;
 
   return (
     <div>
       <div data-testid="loading">{loading ? 'loading' : 'not-loading'}</div>
       <div data-testid="user">{user ? user.name : 'no-user'}</div>
-      <button onClick={() => login('test-token')}>Login</button>
-      <button onClick={logout}>Logout</button>
+      <button onClick={signIn}>Login</button>
+      <button onClick={signOut}>Logout</button>
     </div>
   );
 };
@@ -41,16 +50,24 @@ const mockUser = {
 
 const mockAuthResponse = {
   data: {
-    access_token: 'access-token',
-    refresh_token: 'refresh-token',
+    token: 'auth-token',
     user: mockUser,
   },
+};
+
+const mockGoogleUser = {
+  id: 'google-123',
+  email: 'test@example.com',
+  name: 'Test User',
+  picture: 'https://example.com/picture.jpg',
 };
 
 describe('AuthContext', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockLocalStorage.getItem.mockReturnValue(null);
+    mockedGoogleAuth.signIn.mockResolvedValue(mockGoogleUser);
+    mockedGoogleAuth.signOut.mockResolvedValue();
   });
 
   it('provides initial state correctly', () => {
@@ -78,7 +95,7 @@ describe('AuthContext', () => {
       expect(screen.getByTestId('user')).toHaveTextContent('Test User');
     });
 
-    expect(mockedApi.get).toHaveBeenCalledWith('/auth/me');
+    expect(mockedApi.get).toHaveBeenCalledWith('/auth/verify');
   });
 
   it('handles login successfully', async () => {
@@ -101,16 +118,17 @@ describe('AuthContext', () => {
     });
 
     expect(mockedApi.post).toHaveBeenCalledWith('/auth/google', {
-      id_token: 'test-token',
+      google_id: mockGoogleUser.id,
+      email: mockGoogleUser.email,
+      name: mockGoogleUser.name,
+      picture: mockGoogleUser.picture,
     });
-
-    expect(mockLocalStorage.setItem).toHaveBeenCalledWith('access_token', 'access-token');
-    expect(mockLocalStorage.setItem).toHaveBeenCalledWith('refresh_token', 'refresh-token');
+    expect(mockLocalStorage.setItem).toHaveBeenCalledWith('authToken', 'auth-token');
   });
 
   it('handles login error', async () => {
     const error = new Error('Login failed');
-    mockedApi.post.mockRejectedValue(error);
+    mockedGoogleAuth.signIn.mockRejectedValue(error);
 
     render(
       <AuthProvider>
@@ -154,8 +172,7 @@ describe('AuthContext', () => {
     });
 
     expect(screen.getByTestId('user')).toHaveTextContent('no-user');
-    expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('access_token');
-    expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('refresh_token');
+    expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('authToken');
   });
 
   it('shows loading state during initial token validation', async () => {
@@ -181,9 +198,10 @@ describe('AuthContext', () => {
 
   it('shows loading state during login', async () => {
     // Mock a slow login response
-    mockedApi.post.mockImplementation(
-      () => new Promise(resolve => setTimeout(() => resolve(mockAuthResponse), 100)),
+    mockedGoogleAuth.signIn.mockImplementation(
+      () => new Promise(resolve => setTimeout(() => resolve(mockGoogleUser), 100)),
     );
+    mockedApi.post.mockResolvedValue(mockAuthResponse);
 
     render(
       <AuthProvider>
@@ -218,8 +236,7 @@ describe('AuthContext', () => {
       expect(screen.getByTestId('user')).toHaveTextContent('no-user');
     });
 
-    expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('access_token');
-    expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('refresh_token');
+    expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('authToken');
   });
 
   it('handles different user roles', async () => {
@@ -266,7 +283,9 @@ describe('AuthContext', () => {
 
   it('throws error when used outside provider', () => {
     // Suppress console.error for this test
+    // eslint-disable-next-line no-console
     const originalError = console.error;
+    // eslint-disable-next-line no-console
     const mockConsoleError = jest.fn();
     // eslint-disable-next-line no-console
     console.error = mockConsoleError;
