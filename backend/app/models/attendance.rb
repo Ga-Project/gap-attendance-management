@@ -106,6 +106,23 @@ class Attendance < ApplicationRecord
     clocked_in? || on_break?
   end
 
+  # Recalculate work and break totals (used by admin for corrections)
+  def recalculate_totals!
+    if clock_in_time && clock_out_time
+      # Calculate total office time
+      total_office_time = ((clock_out_time - clock_in_time) / 1.minute).to_i
+      
+      # Calculate break time from attendance records
+      break_minutes = calculate_break_minutes_from_records
+      
+      # Update totals
+      self.total_break_minutes = break_minutes
+      self.total_work_minutes = [total_office_time - break_minutes, 0].max
+      
+      save!
+    end
+  end
+
   private
 
   # Calculate and update work and break time
@@ -159,5 +176,26 @@ class Attendance < ApplicationRecord
     hours = minutes / 60
     mins = minutes % 60
     format('%<hours>02d:%<mins>02d', hours: hours, mins: mins)
+  end
+
+  # Calculate break minutes from attendance records
+  def calculate_break_minutes_from_records
+    break_records = attendance_records.where(record_type: ['break_start', 'break_end'])
+                                     .order(:timestamp)
+    
+    total_break_minutes = 0
+    break_start_time = nil
+    
+    break_records.each do |record|
+      if record.break_start?
+        break_start_time = record.timestamp
+      elsif record.break_end? && break_start_time
+        break_duration = ((record.timestamp - break_start_time) / 1.minute).to_i
+        total_break_minutes += break_duration
+        break_start_time = nil
+      end
+    end
+    
+    total_break_minutes
   end
 end
