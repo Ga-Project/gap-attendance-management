@@ -18,7 +18,7 @@
   - JWT認証とGoogle OAuth2の基本設定を追加
   - _Requirements: 1.2, 2.2, 10.1_
 
-- [ ] 4. Reactフロントエンドプロジェクトの初期設定
+- [x] 4. Reactフロントエンドプロジェクトの初期設定
   - React 18 + TypeScriptプロジェクトを作成し、基本的なpackage.jsonを設定
   - React Router、Axios、Material-UIの基本設定を実装
   - Google OAuth2クライアントライブラリの設定を追加
