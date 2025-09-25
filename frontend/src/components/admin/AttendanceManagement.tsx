@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -122,6 +122,7 @@ const EditAttendanceDialog: React.FC<EditAttendanceDialogProps> = ({
       );
       onClose();
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to save attendance:', error);
     } finally {
       setSaving(false);
@@ -203,21 +204,17 @@ const AttendanceManagement: React.FC = () => {
   const [editingAttendance, setEditingAttendance] = useState<AdminAttendance | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-  useEffect(() => {
-    fetchUsers();
-    fetchAttendances();
-  }, []);
-
   const fetchUsers = async () => {
     try {
       const response = await api.get('/admin/users');
       setUsers(response.data.users);
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch users:', err);
     }
   };
 
-  const fetchAttendances = async () => {
+  const fetchAttendances = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -237,11 +234,17 @@ params.end_date = endDate.toISOString().split('T')[0];
       setAttendances(response.data.attendances);
     } catch (err: any) {
       setError(err.response?.data?.error || '勤怠データの取得に失敗しました');
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch attendances:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedUserId, startDate, endDate]);
+
+  useEffect(() => {
+    fetchUsers();
+    fetchAttendances();
+  }, [fetchAttendances]);
 
   const handleEditAttendance = (attendance: AdminAttendance) => {
     setEditingAttendance(attendance);
@@ -291,6 +294,7 @@ params.end_date = endDate.toISOString().split('T')[0];
       window.URL.revokeObjectURL(url);
     } catch (err: any) {
       setError(err.response?.data?.error || 'CSVエクスポートに失敗しました');
+      // eslint-disable-next-line no-console
       console.error('Failed to export CSV:', err);
     }
   };

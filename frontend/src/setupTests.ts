@@ -5,8 +5,10 @@
 import '@testing-library/jest-dom';
 
 // Suppress React act() warnings and DOM nesting warnings in tests
+// eslint-disable-next-line no-console
 const originalError = console.error;
 beforeAll(() => {
+  // eslint-disable-next-line no-console
   console.error = (...args: any[]) => {
     if (
       typeof args[0] === 'string' &&
@@ -23,6 +25,7 @@ beforeAll(() => {
 });
 
 afterAll(() => {
+  // eslint-disable-next-line no-console
   console.error = originalError;
 });
 

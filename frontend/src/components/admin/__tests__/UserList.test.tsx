@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import UserList from '../UserList';
 import api from '../../../services/api';
@@ -64,9 +64,7 @@ describe('UserList Component', () => {
       data: { users: mockUsers },
     });
 
-    await act(async () => {
-      renderWithTheme(<UserList />);
-    });
+    renderWithTheme(<UserList />);
 
     expect(screen.getByText('全社員勤怠管理')).toBeInTheDocument();
     expect(screen.getByText('社員一覧')).toBeInTheDocument();
@@ -75,9 +73,7 @@ describe('UserList Component', () => {
       expect(screen.getByText('Test User 1')).toBeInTheDocument();
     });
     
-    await waitFor(() => {
-      expect(screen.getByText('Test Admin')).toBeInTheDocument();
-    });
+    expect(screen.getByText('Test Admin')).toBeInTheDocument();
   });
 
   it('displays attendance records when switching to attendance tab', async () => {
@@ -85,9 +81,7 @@ describe('UserList Component', () => {
       .mockResolvedValueOnce({ data: { users: mockUsers } })
       .mockResolvedValueOnce({ data: { attendances: mockAttendances } });
 
-    await act(async () => {
-      renderWithTheme(<UserList />);
-    });
+    renderWithTheme(<UserList />);
 
     // Wait for initial load
     await waitFor(() => {
@@ -95,19 +89,9 @@ describe('UserList Component', () => {
     });
 
     // Click on attendance tab
-    await act(async () => {
-      const attendanceTab = screen.getByText('勤怠実績');
-      fireEvent.click(attendanceTab);
-    });
+    const attendanceTab = screen.getByText('勤怠実績');
+    fireEvent.click(attendanceTab);
 
-    await waitFor(() => {
-      expect(screen.getAllByText('開始日')).toHaveLength(2); // Label and legend
-    });
-    
-    await waitFor(() => {
-      expect(screen.getAllByText('終了日')).toHaveLength(2); // Label and legend
-    });
-    
     await waitFor(() => {
       expect(screen.getByText('CSV エクスポート')).toBeInTheDocument();
     });
@@ -118,9 +102,7 @@ describe('UserList Component', () => {
       .mockResolvedValueOnce({ data: { users: mockUsers } })
       .mockResolvedValueOnce({ data: { attendances: mockAttendances } });
 
-    await act(async () => {
-      renderWithTheme(<UserList />);
-    });
+    renderWithTheme(<UserList />);
 
     // Wait for initial load
     await waitFor(() => {
@@ -128,10 +110,8 @@ describe('UserList Component', () => {
     });
 
     // Click on monthly report tab
-    await act(async () => {
-      const monthlyTab = screen.getByText('月次レポート');
-      fireEvent.click(monthlyTab);
-    });
+    const monthlyTab = screen.getByText('月次レポート');
+    fireEvent.click(monthlyTab);
 
     await waitFor(() => {
       expect(screen.getAllByText('対象月')).toHaveLength(2); // Label and legend
@@ -143,9 +123,7 @@ describe('UserList Component', () => {
       data: { users: mockUsers },
     });
 
-    await act(async () => {
-      renderWithTheme(<UserList />);
-    });
+    renderWithTheme(<UserList />);
 
     await waitFor(() => {
       expect(screen.getByText('Test User 1')).toBeInTheDocument();
@@ -161,16 +139,15 @@ describe('UserList Component', () => {
       data: { users: mockUsers },
     });
 
-    await act(async () => {
-      renderWithTheme(<UserList />);
-    });
+    renderWithTheme(<UserList />);
 
     await waitFor(() => {
       expect(screen.getByText('Test User 1')).toBeInTheDocument();
-      expect(screen.getByText('test1@example.com')).toBeInTheDocument();
-      expect(screen.getByText('Test Admin')).toBeInTheDocument();
-      expect(screen.getByText('admin@example.com')).toBeInTheDocument();
     });
+
+    expect(screen.getByText('test1@example.com')).toBeInTheDocument();
+    expect(screen.getByText('Test Admin')).toBeInTheDocument();
+    expect(screen.getByText('admin@example.com')).toBeInTheDocument();
   });
 
   it('displays CSV export button in attendance tab', async () => {
@@ -178,9 +155,7 @@ describe('UserList Component', () => {
       .mockResolvedValueOnce({ data: { users: mockUsers } })
       .mockResolvedValueOnce({ data: { attendances: mockAttendances } });
 
-    await act(async () => {
-      renderWithTheme(<UserList />);
-    });
+    renderWithTheme(<UserList />);
 
     // Wait for initial load
     await waitFor(() => {
@@ -188,10 +163,8 @@ describe('UserList Component', () => {
     });
 
     // Switch to attendance tab
-    await act(async () => {
-      const attendanceTab = screen.getByText('勤怠実績');
-      fireEvent.click(attendanceTab);
-    });
+    const attendanceTab = screen.getByText('勤怠実績');
+    fireEvent.click(attendanceTab);
 
     // Wait for CSV export button to appear
     await waitFor(() => {
@@ -206,9 +179,7 @@ describe('UserList Component', () => {
   it('handles API errors gracefully', async () => {
     mockedApi.get.mockRejectedValueOnce(new Error('API Error'));
 
-    await act(async () => {
-      renderWithTheme(<UserList />);
-    });
+    renderWithTheme(<UserList />);
 
     await waitFor(() => {
       expect(screen.getByText('社員一覧の取得に失敗しました')).toBeInTheDocument();

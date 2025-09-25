@@ -57,6 +57,7 @@ const AdminDashboard: React.FC = () => {
     try {
       await signOut();
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Sign out failed:', error);
     }
   };
