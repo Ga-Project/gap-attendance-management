@@ -68,7 +68,7 @@ docker-compose up
 
 #### Lintツール
 - **Backend (Ruby)**: Rubocop - Ruby標準とRails best practicesに準拠
-- **Frontend (TypeScript/React)**: ESLint + Prettier - TypeScript/React標準に準拠
+- **Frontend (TypeScript/React)**: ESLint - TypeScript/React標準に準拠
 
 #### Pre-commitフックのセットアップ
 初回セットアップ時に以下を実行してください：
