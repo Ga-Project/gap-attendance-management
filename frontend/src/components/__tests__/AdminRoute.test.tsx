@@ -33,9 +33,10 @@ describe('AdminRoute', () => {
   it('renders children when user is admin', () => {
     const adminContext = {
       user: mockAdminUser,
-      login: jest.fn(),
-      logout: jest.fn(),
+      signIn: jest.fn(),
+      signOut: jest.fn(),
       loading: false,
+      isAuthenticated: true,
     };
 
     renderWithRouter(
@@ -52,9 +53,10 @@ describe('AdminRoute', () => {
   it('redirects to dashboard when user is not admin', () => {
     const employeeContext = {
       user: mockEmployeeUser,
-      login: jest.fn(),
-      logout: jest.fn(),
+      signIn: jest.fn(),
+      signOut: jest.fn(),
       loading: false,
+      isAuthenticated: true,
     };
 
     renderWithRouter(
@@ -71,9 +73,10 @@ describe('AdminRoute', () => {
   it('redirects to login when user is not authenticated', () => {
     const unauthenticatedContext = {
       user: null,
-      login: jest.fn(),
-      logout: jest.fn(),
+      signIn: jest.fn(),
+      signOut: jest.fn(),
       loading: false,
+      isAuthenticated: false,
     };
 
     renderWithRouter(
@@ -90,9 +93,10 @@ describe('AdminRoute', () => {
   it('shows loading state when authentication is loading', () => {
     const loadingContext = {
       user: null,
-      login: jest.fn(),
-      logout: jest.fn(),
+      signIn: jest.fn(),
+      signOut: jest.fn(),
       loading: true,
+      isAuthenticated: false,
     };
 
     renderWithRouter(

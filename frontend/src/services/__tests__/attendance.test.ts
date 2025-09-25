@@ -103,7 +103,7 @@ describe('AttendanceService', () => {
 
       const result = await AttendanceService.getTodayAttendance();
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/attendances/today');
+      expect(mockedApi.get).toHaveBeenCalledWith('/v1/attendances/today');
       expect(result).toEqual(mockTodayAttendanceResponse.data);
     });
 
@@ -121,7 +121,7 @@ describe('AttendanceService', () => {
 
       const result = await AttendanceService.getAttendances();
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/attendances', { params: {} });
+      expect(mockedApi.get).toHaveBeenCalledWith('/v1/attendances', { params: {} });
       expect(result).toEqual(mockAttendancesResponse.data);
     });
 
@@ -135,7 +135,7 @@ describe('AttendanceService', () => {
 
       const result = await AttendanceService.getAttendances(params);
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/attendances', { params });
+      expect(mockedApi.get).toHaveBeenCalledWith('/v1/attendances', { params });
       expect(result).toEqual(mockAttendancesResponse.data);
     });
 
@@ -151,28 +151,22 @@ describe('AttendanceService', () => {
     it('fetches statistics with date range parameters', async () => {
       mockedApi.get.mockResolvedValue(mockStatisticsResponse);
 
-      const params = {
-        start_date: '2025-01-01',
-        end_date: '2025-01-31',
-      };
+      const result = await AttendanceService.getStatistics('2025-01-01', '2025-01-31');
 
-      const result = await AttendanceService.getStatistics(params);
-
-      expect(mockedApi.get).toHaveBeenCalledWith('/attendances/statistics', { params });
+      expect(mockedApi.get).toHaveBeenCalledWith('/v1/attendances/statistics', { 
+        params: { start_date: '2025-01-01', end_date: '2025-01-31' }, 
+      });
       expect(result).toEqual(mockStatisticsResponse.data);
     });
 
     it('fetches statistics with year and month parameters', async () => {
       mockedApi.get.mockResolvedValue(mockStatisticsResponse);
 
-      const params = {
-        year: 2025,
-        month: 1,
-      };
+      const result = await AttendanceService.getMonthlyStatistics(2025, 1);
 
-      const result = await AttendanceService.getStatistics(params);
-
-      expect(mockedApi.get).toHaveBeenCalledWith('/attendances/statistics', { params });
+      expect(mockedApi.get).toHaveBeenCalledWith('/v1/attendances/statistics', { 
+        params: { year: '2025', month: '1' }, 
+      });
       expect(result).toEqual(mockStatisticsResponse.data);
     });
 
@@ -191,9 +185,7 @@ describe('AttendanceService', () => {
 
       const result = await AttendanceService.getMonthlyAttendances(2025, 1);
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/attendances/monthly', {
-        params: { year: 2025, month: 1 },
-      });
+      expect(mockedApi.get).toHaveBeenCalledWith('/v1/attendances/monthly/2025/1');
       expect(result).toEqual(mockMonthlyResponse.data);
     });
 
@@ -211,7 +203,7 @@ describe('AttendanceService', () => {
 
       const result = await AttendanceService.clockIn();
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/attendances/clock_in');
+      expect(mockedApi.post).toHaveBeenCalledWith('/v1/attendances/clock_in');
       expect(result).toEqual(mockClockActionResponse.data);
     });
 
@@ -240,7 +232,7 @@ describe('AttendanceService', () => {
 
       const result = await AttendanceService.clockOut();
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/attendances/clock_out');
+      expect(mockedApi.post).toHaveBeenCalledWith('/v1/attendances/clock_out');
       expect(result).toEqual(clockOutResponse.data);
     });
 
@@ -268,7 +260,7 @@ describe('AttendanceService', () => {
 
       const result = await AttendanceService.startBreak();
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/attendances/break_start');
+      expect(mockedApi.post).toHaveBeenCalledWith('/v1/attendances/break_start');
       expect(result).toEqual(breakResponse.data);
     });
 
@@ -298,7 +290,7 @@ describe('AttendanceService', () => {
 
       const result = await AttendanceService.endBreak();
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/attendances/break_end');
+      expect(mockedApi.post).toHaveBeenCalledWith('/v1/attendances/break_end');
       expect(result).toEqual(breakEndResponse.data);
     });
 

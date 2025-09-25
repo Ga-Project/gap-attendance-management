@@ -167,11 +167,13 @@ describe('AuthContext', () => {
     // Then logout
     const logoutButton = screen.getByText('Logout');
     
-    act(() => {
+    await act(async () => {
       logoutButton.click();
     });
 
-    expect(screen.getByTestId('user')).toHaveTextContent('no-user');
+    await waitFor(() => {
+      expect(screen.getByTestId('user')).toHaveTextContent('no-user');
+    });
     expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('authToken');
   });
 
@@ -236,7 +238,9 @@ describe('AuthContext', () => {
       expect(screen.getByTestId('user')).toHaveTextContent('no-user');
     });
 
-    expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('authToken');
+    await waitFor(() => {
+      expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('authToken');
+    });
   });
 
   it('handles different user roles', async () => {

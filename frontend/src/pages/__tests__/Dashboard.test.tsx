@@ -12,8 +12,9 @@ const mockAttendanceService = AttendanceService as jest.Mocked<typeof Attendance
 
 // Mock the TimeClockWidget component
 jest.mock('../../components/TimeClockWidget', () => {
+  const mockReact = require('react');
   return function MockTimeClockWidget({ onAttendanceUpdate }: any) {
-    React.useEffect(() => {
+    mockReact.useEffect(() => {
       if (onAttendanceUpdate) {
         onAttendanceUpdate({
           attendance: {

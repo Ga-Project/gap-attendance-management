@@ -4,6 +4,20 @@ import axios from 'axios';
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
+// Mock axios.create to return a mock instance
+const mockAxiosInstance = {
+  interceptors: {
+    request: { use: jest.fn() },
+    response: { use: jest.fn() },
+  },
+  get: jest.fn(),
+  post: jest.fn(),
+  put: jest.fn(),
+  delete: jest.fn(),
+};
+
+mockedAxios.create.mockReturnValue(mockAxiosInstance as any);
+
 // Mock localStorage
 const mockLocalStorage = {
   getItem: jest.fn(),
@@ -42,18 +56,18 @@ describe('API Service', () => {
     });
   });
 
-  it('adds authorization header when token exists', () => {
-    mockLocalStorage.getItem.mockReturnValue('test-token');
-
-    // Since we can't easily test interceptors directly, we'll test the behavior
-    expect(mockLocalStorage.getItem).toHaveBeenCalledWith('access_token');
+  it('sets up request interceptor', () => {
+    // Import the api module to trigger the setup
+    require('../api');
+    
+    expect(mockAxiosInstance.interceptors.request.use).toHaveBeenCalled();
   });
 
-  it('does not add authorization header when token does not exist', () => {
-    mockLocalStorage.getItem.mockReturnValue(null);
-
-    // Test that getItem is called but no token is available
-    expect(mockLocalStorage.getItem).toHaveBeenCalledWith('access_token');
+  it('sets up response interceptor', () => {
+    // Import the api module to trigger the setup
+    require('../api');
+    
+    expect(mockAxiosInstance.interceptors.response.use).toHaveBeenCalled();
   });
 
   it('handles 401 responses by redirecting to login', () => {
@@ -66,13 +80,11 @@ describe('API Service', () => {
 
     // Simulate what the response interceptor would do
     if (error.response?.status === 401) {
-      mockLocalStorage.removeItem('access_token');
-      mockLocalStorage.removeItem('refresh_token');
+      mockLocalStorage.removeItem('authToken');
       mockLocation.href = '/login';
     }
 
-    expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('access_token');
-    expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('refresh_token');
+    expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('authToken');
     expect(mockLocation.href).toBe('/login');
   });
 
@@ -125,6 +137,7 @@ describe('API Service', () => {
     expect(mockedAxios.create).toHaveBeenCalledWith(
       expect.objectContaining({
         baseURL: 'http://localhost:3001/api',
+        timeout: 10000,
       }),
     );
   });
