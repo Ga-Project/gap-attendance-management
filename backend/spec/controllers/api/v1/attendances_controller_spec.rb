@@ -375,6 +375,142 @@ RSpec.describe Api::V1::AttendancesController, type: :controller do
     end
   end
 
+  describe 'GET #statistics' do
+    let!(:attendance1) do
+      create(:attendance,
+             user: user,
+             date: Date.current - 2.days,
+             status: :clocked_out,
+             total_work_minutes: 480,
+             total_break_minutes: 60)
+    end
+    let!(:attendance2) do
+      create(:attendance,
+             user: user,
+             date: Date.current - 1.day,
+             status: :clocked_out,
+             total_work_minutes: 450,
+             total_break_minutes: 30)
+    end
+
+    context 'with date range parameters' do
+      it 'returns statistics for the specified date range' do
+        get :statistics, params: {
+          start_date: (Date.current - 2.days).to_s,
+          end_date: (Date.current - 1.day).to_s,
+        }
+
+        expect(response).to have_http_status(:ok)
+        json_response = JSON.parse(response.body)
+
+        stats = json_response['date_range_statistics']
+        expect(stats['working_days']).to eq(2)
+        expect(stats['total_work_minutes']).to eq(930)
+        expect(stats['total_break_minutes']).to eq(90)
+        expect(stats['formatted_total_work_time']).to eq('15:30')
+        expect(stats['formatted_total_break_time']).to eq('01:30')
+      end
+    end
+
+    context 'with year and month parameters' do
+      it 'returns monthly statistics' do
+        current_month = Date.current.month
+        current_year = Date.current.year
+
+        get :statistics, params: {
+          year: current_year,
+          month: current_month,
+        }
+
+        expect(response).to have_http_status(:ok)
+        json_response = JSON.parse(response.body)
+
+        stats = json_response['monthly_statistics']
+        expect(stats['year']).to eq(current_year)
+        expect(stats['month']).to eq(current_month)
+        expect(stats['working_days']).to eq(2)
+        expect(stats['total_work_minutes']).to eq(930)
+      end
+    end
+
+    context 'with invalid parameters' do
+      it 'returns error when no parameters provided' do
+        get :statistics
+
+        expect(response).to have_http_status(:bad_request)
+        json_response = JSON.parse(response.body)
+        expect(json_response['error']).to include('Please provide either year/month or start_date/end_date parameters')
+      end
+
+      it 'returns error for invalid date format' do
+        get :statistics, params: {
+          start_date: 'invalid-date',
+          end_date: Date.current.to_s,
+        }
+
+        expect(response).to have_http_status(:bad_request)
+        json_response = JSON.parse(response.body)
+        expect(json_response['error']).to include('Invalid date format')
+      end
+    end
+  end
+
+  describe 'GET #monthly' do
+    let!(:monthly_attendance1) do
+      create(:attendance,
+             user: user,
+             date: Date.new(2024, 1, 15),
+             status: :clocked_out,
+             total_work_minutes: 480,
+             total_break_minutes: 60)
+    end
+    let!(:monthly_attendance2) do
+      create(:attendance,
+             user: user,
+             date: Date.new(2024, 1, 16),
+             status: :clocked_out,
+             total_work_minutes: 450,
+             total_break_minutes: 30)
+    end
+    let!(:other_month_attendance) do
+      create(:attendance,
+             user: user,
+             date: Date.new(2024, 2, 15),
+             status: :clocked_out,
+             total_work_minutes: 400,
+             total_break_minutes: 45)
+    end
+
+    it 'returns attendances and statistics for the specified month' do
+      get :monthly, params: { year: 2024, month: 1 }
+
+      expect(response).to have_http_status(:ok)
+      json_response = JSON.parse(response.body)
+
+      # Check attendances
+      attendances = json_response['attendances']
+      expect(attendances.length).to eq(2)
+      dates = attendances.map { |a| Date.parse(a['date']) }
+      expect(dates).to all(satisfy { |date| date.month == 1 && date.year == 2024 })
+
+      # Check statistics
+      stats = json_response['statistics']
+      expect(stats['year']).to eq(2024)
+      expect(stats['month']).to eq(1)
+      expect(stats['working_days']).to eq(2)
+      expect(stats['total_work_minutes']).to eq(930)
+      expect(stats['total_break_minutes']).to eq(90)
+    end
+
+    it 'returns error for invalid year or month' do
+      get :monthly, params: { year: 'invalid', month: 1 }
+
+      expect(response).to have_http_status(:bad_request)
+      json_response = JSON.parse(response.body)
+      expect(json_response['error']).to eq('Invalid year or month')
+    end
+  end
+
   describe 'time calculations' do
     let!(:today_attendance) do
       create(:attendance,
