@@ -10,9 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_09_25_100033) do
+ActiveRecord::Schema[7.1].define(version: 2025_09_25_102959) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "attendance_records", force: :cascade do |t|
+    t.bigint "attendance_id", null: false
+    t.integer "record_type"
+    t.datetime "timestamp"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["attendance_id"], name: "index_attendance_records_on_attendance_id"
+  end
 
   create_table "attendances", force: :cascade do |t|
     t.bigint "user_id", null: false
@@ -41,5 +50,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_25_100033) do
     t.index ["google_id"], name: "index_users_on_google_id", unique: true
   end
 
+  add_foreign_key "attendance_records", "attendances"
   add_foreign_key "attendances", "users"
 end
