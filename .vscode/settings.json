@@ -1,3 +1,21 @@
 {
-    "kiroAgent.configureMCP": "Disabled"
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "eslint.workingDirectories": ["frontend"],
+  "ruby.rubocop.executePath": "backend/",
+  "ruby.rubocop.configFilePath": "backend/.rubocop.yml",
+  "ruby.format": "rubocop",
+  "files.associations": {
+    "*.rb": "ruby",
+    "Gemfile": "ruby",
+    "Rakefile": "ruby"
+  },
+  "emmet.includeLanguages": {
+    "javascript": "javascriptreact",
+    "typescript": "typescriptreact"
+  },
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "javascript.preferences.importModuleSpecifier": "relative"
 }

@@ -108,7 +108,7 @@ tmp/
 temp/
 
 # Editor directories and files
-.vscode/
+# .vscode/ - Keep VS Code settings for project consistency
 .idea
 *.swp
 *.swo
@@ -129,6 +129,13 @@ Thumbs.db
 # Database
 *.sqlite3
 *.db
+
+# Code quality tools
+.rubocop-*
+.eslintcache
+
+# Pre-commit
+.pre-commit-cache/
 
 # Lock files (will be generated in CI)
 backend/Gemfile.lock

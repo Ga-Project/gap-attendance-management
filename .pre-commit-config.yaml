@@ -1,0 +1,24 @@
+repos:
+  - repo: local
+    hooks:
+      - id: rubocop
+        name: Rubocop
+        entry: bash -c 'cd backend && bundle exec rubocop'
+        language: system
+        files: \.rb$
+        pass_filenames: false
+        
+      - id: eslint
+        name: ESLint
+        entry: bash -c 'cd frontend && npm run lint'
+        language: system
+        files: \.(js|jsx|ts|tsx)$
+        pass_filenames: false
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files

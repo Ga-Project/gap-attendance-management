@@ -26,8 +26,22 @@ Layout/LineLength:
 Metrics/MethodLength:
   Max: 15
 
+Metrics/ClassLength:
+  Max: 100
+
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
+    - 'config/routes.rb'
+
 Style/StringLiterals:
   EnforcedStyle: single_quotes
 
-Bundler/OrderedGems:
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+
+Naming/VariableNumber:
   Enabled: false

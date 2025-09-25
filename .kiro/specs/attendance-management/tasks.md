@@ -6,7 +6,7 @@
   - GitHub Actions CI/CDパイプラインの基本設定を実装
   - _Requirements: 12.1, 14.1, 14.2, 15.1, 15.2_
 
-- [ ] 2. コード品質管理ツールの設定
+- [x] 2. コード品質管理ツールの設定
   - RubocopとESLintの設定ファイルを作成し、プロジェクト標準を定義
   - Pre-commitフックを設定してコミット前の自動Lintチェックを実装
   - GitHub ActionsワークフローにLintチェックを統合
