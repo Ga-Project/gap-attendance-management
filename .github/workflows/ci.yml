@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: attendance_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2.0
+          bundler-cache: false
+          working-directory: ./backend
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: |
+          bundle install --jobs 4 --retry 3
+
+      - name: Set up database
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/attendance_test
+          RAILS_ENV: test
+        run: |
+          bundle exec rails db:create || true
+          bundle exec rails db:migrate || true
+
+      - name: Run Rubocop
+        working-directory: ./backend
+        run: bundle exec rubocop --auto-correct || bundle exec rubocop
+
+      - name: Run RSpec tests
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/attendance_test
+          RAILS_ENV: test
+        run: bundle exec rspec
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Debug frontend structure
+        working-directory: ./frontend
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Directory contents:"
+          ls -la
+          echo "Public directory contents:"
+          ls -la public/ || echo "Public directory not found"
+          echo "Checking if index.html exists:"
+          test -f public/index.html && echo "index.html exists" || echo "index.html NOT found"
+
+      - name: Run ESLint
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: Run tests
+        working-directory: ./frontend
+        run: npm test -- --coverage --watchAll=false
+
+      - name: Build application
+        working-directory: ./frontend
+        run: npm run build

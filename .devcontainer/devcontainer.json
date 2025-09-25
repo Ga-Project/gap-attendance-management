@@ -1,0 +1,43 @@
+{
+  "name": "Attendance Management",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "backend",
+  "workspaceFolder": "/app",
+  "shutdownAction": "stopCompose",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rebornix.Ruby",
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-eslint",
+        "ms-vscode.vscode-json",
+        "GitHub.copilot",
+        "ms-vscode.hexeditor",
+        "ms-vscode.vscode-yaml"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "ruby.intellisense": "rubyLocate",
+        "ruby.codeCompletion": "rcodetools",
+        "ruby.format": "rubocop"
+      }
+    }
+  },
+  "postCreateCommand": "bundle install",
+  "forwardPorts": [3000, 3001, 5432],
+  "portsAttributes": {
+    "3000": {
+      "label": "React Frontend",
+      "onAutoForward": "notify"
+    },
+    "3001": {
+      "label": "Rails API",
+      "onAutoForward": "notify"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    }
+  }
+}
