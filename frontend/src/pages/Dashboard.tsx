@@ -10,8 +10,11 @@ import {
     Avatar,
     Menu,
     MenuItem,
+    Grid,
 } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
+import TimeClockWidget from '../components/TimeClockWidget';
+import { TodayAttendanceResponse } from '../types';
 
 const Dashboard: React.FC = () => {
     const { user, signOut } = useAuth();
@@ -33,6 +36,12 @@ const Dashboard: React.FC = () => {
             // eslint-disable-next-line no-console
             console.error('Sign out error:', error);
         }
+    };
+
+    const handleAttendanceUpdate = (data: TodayAttendanceResponse): void => {
+        // Handle attendance updates if needed in the future
+        // eslint-disable-next-line no-console
+        console.log('Attendance updated:', data);
     };
 
     return (
@@ -70,45 +79,54 @@ const Dashboard: React.FC = () => {
             </AppBar>
 
             <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                <Paper sx={{ p: 3 }}>
-                    <Typography variant="h4" gutterBottom>
-                        ダッシュボード
-                    </Typography>
-                    <Typography variant="body1" color="text.secondary" paragraph>
-                        ようこそ、{user?.name}さん
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        権限: {user?.role === 'admin' ? '管理者' : '従業員'}
-                    </Typography>
+                <Grid container spacing={3}>
+                    {/* Welcome Section */}
+                    <Grid item xs={12}>
+                        <Paper sx={{ p: 3 }}>
+                            <Typography variant="h4" gutterBottom>
+                                ダッシュボード
+                            </Typography>
+                            <Typography variant="body1" color="text.secondary" paragraph>
+                                ようこそ、{user?.name}さん
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                権限: {user?.role === 'admin' ? '管理者' : '従業員'}
+                            </Typography>
+                        </Paper>
+                    </Grid>
 
-                    <Box sx={{ mt: 4 }}>
-                        <Typography variant="h6" gutterBottom>
-                            機能（開発中）
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                            <Button variant="outlined" disabled>
-                                出勤打刻
-                            </Button>
-                            <Button variant="outlined" disabled>
-                                退勤打刻
-                            </Button>
-                            <Button variant="outlined" disabled>
-                                休憩開始
-                            </Button>
-                            <Button variant="outlined" disabled>
-                                休憩終了
-                            </Button>
-                            <Button variant="outlined" disabled>
-                                実績確認
-                            </Button>
-                            {user?.role === 'admin' && (
+                    {/* Time Clock Widget */}
+                    <Grid item xs={12}>
+                        <TimeClockWidget onAttendanceUpdate={handleAttendanceUpdate} />
+                    </Grid>
+
+                    {/* Additional Features */}
+                    <Grid item xs={12}>
+                        <Paper sx={{ p: 3 }}>
+                            <Typography variant="h6" gutterBottom>
+                                その他の機能
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                                 <Button variant="outlined" disabled>
-                                    管理者機能
+                                    実績確認
                                 </Button>
-                            )}
-                        </Box>
-                    </Box>
-                </Paper>
+                                <Button variant="outlined" disabled>
+                                    月次レポート
+                                </Button>
+                                {user?.role === 'admin' && (
+                                    <>
+                                        <Button variant="outlined" disabled>
+                                            全社員管理
+                                        </Button>
+                                        <Button variant="outlined" disabled>
+                                            CSVエクスポート
+                                        </Button>
+                                    </>
+                                )}
+                            </Box>
+                        </Paper>
+                    </Grid>
+                </Grid>
             </Container>
         </>
     );

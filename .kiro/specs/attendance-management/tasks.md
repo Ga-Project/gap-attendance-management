@@ -49,27 +49,27 @@
   - 監査ログの検索・フィルタリング機能を実装
   - _Requirements: 9.3, 10.5_
 
-- [ ] 6. Google OAuth認証システムの実装
+- [x] 6. Google OAuth認証システムの実装
 - [x] 6.1 バックエンド認証サービスの実装
   - GoogleAuthServiceクラスでOAuth認証処理を実装
   - JwtServiceクラスでトークン生成・検証機能を実装
   - AuthControllerで認証エンドポイントを作成
   - _Requirements: 1.2, 1.3, 2.2, 2.3_
 
-- [ ] 6.2 フロントエンド認証コンポーネントの実装
+- [x] 6.2 フロントエンド認証コンポーネントの実装
   - LoginPageコンポーネントでGoogle OAuthログインUIを実装
   - AuthProviderでReact Context APIを使用した認証状態管理を実装
   - ProtectedRouteコンポーネントで認証済みルート保護を実装
   - _Requirements: 1.1, 2.1, 2.4, 2.5_
 
-- [ ] 7. 勤怠打刻機能の実装
-- [ ] 7.1 バックエンド勤怠APIの実装
+- [x] 7. 勤怠打刻機能の実装
+- [x] 7.1 バックエンド勤怠APIの実装
   - AttendancesControllerで打刻エンドポイント（clock_in/clock_out/break_start/break_end）を実装
   - 打刻順序の検証と重複チェックのビジネスロジックを実装
   - 勤務時間と休憩時間の自動計算機能を実装
   - _Requirements: 3.2, 4.2, 5.2, 5.3, 10.2, 10.4_
 
-- [ ] 7.2 フロントエンド打刻UIの実装
+- [x] 7.2 フロントエンド打刻UIの実装
   - TimeClockWidgetコンポーネントで打刻ボタン群のUIを実装
   - 現在の勤怠状態に応じたボタンの表示/非表示制御を実装
   - 打刻成功・エラー時の確認メッセージ表示機能を実装
