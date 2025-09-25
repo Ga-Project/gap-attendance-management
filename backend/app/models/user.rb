@@ -4,7 +4,8 @@ class User < ApplicationRecord
 
   # Associations
   has_many :attendances, dependent: :destroy
-  # has_many :audit_logs, dependent: :destroy  # Will be added in task 5.4
+  has_many :audit_logs, dependent: :destroy
+  has_many :target_audit_logs, class_name: 'AuditLog', foreign_key: 'target_user_id', dependent: :destroy
 
   # Validations
   validates :google_id, presence: true, uniqueness: true
