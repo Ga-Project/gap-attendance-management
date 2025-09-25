@@ -24,7 +24,7 @@
   - Google OAuth2クライアントライブラリの設定を追加
   - _Requirements: 1.1, 2.1, 11.2_
 
-- [ ] 5. データベースモデルとマイグレーションの実装
+- [x] 5. データベースモデルとマイグレーションの実装
 - [x] 5.1 Userモデルの作成
   - Google OAuth認証に対応したUserモデルを実装
   - ロール管理（employee/admin）のenum設定を追加
@@ -50,7 +50,7 @@
   - _Requirements: 9.3, 10.5_
 
 - [ ] 6. Google OAuth認証システムの実装
-- [ ] 6.1 バックエンド認証サービスの実装
+- [x] 6.1 バックエンド認証サービスの実装
   - GoogleAuthServiceクラスでOAuth認証処理を実装
   - JwtServiceクラスでトークン生成・検証機能を実装
   - AuthControllerで認証エンドポイントを作成
