@@ -19,6 +19,8 @@ Rails.application.routes.draw do
           post :break_start
           post :break_end
           get :today
+          get :statistics
+          get 'monthly/:year/:month', to: 'attendances#monthly'
         end
       end
 

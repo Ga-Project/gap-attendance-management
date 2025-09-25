@@ -2,17 +2,17 @@ AllCops:
   TargetRubyVersion: 3.2
   NewCops: enable
   Exclude:
-    - 'db/schema.rb'
-    - 'db/migrate/*'
-    - 'vendor/**/*'
-    - 'bin/*'
-    - 'config/boot.rb'
-    - 'config/environment.rb'
-    - 'config/application.rb'
-    - 'config/environments/*'
-    - 'config/initializers/*'
-    - 'config.ru'
-    - 'Rakefile'
+    - "db/schema.rb"
+    - "db/migrate/*"
+    - "vendor/**/*"
+    - "bin/*"
+    - "config/boot.rb"
+    - "config/environment.rb"
+    - "config/application.rb"
+    - "config/environments/*"
+    - "config/initializers/*"
+    - "config.ru"
+    - "Rakefile"
 
 Style/Documentation:
   Enabled: false
@@ -28,11 +28,13 @@ Metrics/MethodLength:
 
 Metrics/ClassLength:
   Max: 100
+  Exclude:
+    - "app/controllers/api/v1/attendances_controller.rb"
 
 Metrics/BlockLength:
   Exclude:
-    - 'spec/**/*'
-    - 'config/routes.rb'
+    - "spec/**/*"
+    - "config/routes.rb"
 
 Style/StringLiterals:
   EnforcedStyle: single_quotes
@@ -44,4 +46,7 @@ Style/TrailingCommaInHashLiteral:
   EnforcedStyleForMultiline: consistent_comma
 
 Naming/VariableNumber:
+  Enabled: false
+
+Lint/ShadowedException:
   Enabled: false

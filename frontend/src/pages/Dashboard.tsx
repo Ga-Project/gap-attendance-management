@@ -14,11 +14,13 @@ import {
 } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 import TimeClockWidget from '../components/TimeClockWidget';
+import AttendanceHistory from '../components/AttendanceHistory';
 import { TodayAttendanceResponse } from '../types';
 
 const Dashboard: React.FC = () => {
     const { user, signOut } = useAuth();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const [showAttendanceHistory, setShowAttendanceHistory] = React.useState(false);
 
     const handleMenu = (event: React.MouseEvent<HTMLElement>): void => {
         setAnchorEl(event.currentTarget);
@@ -107,7 +109,10 @@ const Dashboard: React.FC = () => {
                                 その他の機能
                             </Typography>
                             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                                <Button variant="outlined" disabled>
+                                <Button 
+                                    variant={showAttendanceHistory ? 'contained' : 'outlined'}
+                                    onClick={() => setShowAttendanceHistory(!showAttendanceHistory)}
+                                >
                                     実績確認
                                 </Button>
                                 <Button variant="outlined" disabled>
@@ -126,6 +131,13 @@ const Dashboard: React.FC = () => {
                             </Box>
                         </Paper>
                     </Grid>
+
+                    {/* Attendance History */}
+                    {showAttendanceHistory && (
+                        <Grid item xs={12}>
+                            <AttendanceHistory />
+                        </Grid>
+                    )}
                 </Grid>
             </Container>
         </>
