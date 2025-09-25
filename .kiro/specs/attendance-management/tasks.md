@@ -31,7 +31,7 @@
   - バリデーションとアソシエーションを定義
   - _Requirements: 1.3, 7.2, 10.4_
 
-- [ ] 5.2 Attendanceモデルの作成
+- [x] 5.2 Attendanceモデルの作成
   - 日次勤怠記録を管理するAttendanceモデルを実装
   - ステータス管理（not_started/clocked_in/on_break/clocked_out）を追加
   - 勤務時間と休憩時間の計算ロジックを実装
