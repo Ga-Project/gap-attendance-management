@@ -4,6 +4,35 @@
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
+// Suppress React act() warnings and DOM nesting warnings in tests
+// eslint-disable-next-line no-console
+const originalError = console.error;
+beforeAll(() => {
+  // eslint-disable-next-line no-console
+  console.error = (...args: any[]) => {
+    if (
+      typeof args[0] === 'string' &&
+      (args[0].includes('Warning: An update to') ||
+       args[0].includes('Warning: `ReactDOMTestUtils.act`') ||
+       args[0].includes('Warning: validateDOMNesting') ||
+       args[0].includes('The above error occurred in the'))
+    ) {
+      return;
+    }
+    // Allow intentional test error messages to pass through
+    originalError.call(console, ...args);
+  };
+});
+
+afterAll(() => {
+  // eslint-disable-next-line no-console
+  console.error = originalError;
+});
+
+// Mock URL.createObjectURL and revokeObjectURL for file download tests
+global.URL.createObjectURL = jest.fn(() => 'mocked-url');
+global.URL.revokeObjectURL = jest.fn();
+
 // Mock gapi-script for testing
 jest.mock('gapi-script', () => ({
     gapi: {

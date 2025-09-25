@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -150,21 +150,17 @@ const AuditLogs: React.FC = () => {
   const [selectedAuditLog, setSelectedAuditLog] = useState<AuditLog | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
-  useEffect(() => {
-    fetchUsers();
-    fetchAuditLogs();
-  }, []);
-
   const fetchUsers = async () => {
     try {
       const response = await api.get('/admin/users');
       setUsers(response.data.users);
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch users:', err);
     }
   };
 
-  const fetchAuditLogs = async () => {
+  const fetchAuditLogs = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -184,11 +180,17 @@ params.end_date = endDate.toISOString().split('T')[0];
       setAuditLogs(response.data.audit_logs);
     } catch (err: any) {
       setError(err.response?.data?.error || '監査ログの取得に失敗しました');
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch audit logs:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedUserId, startDate, endDate]);
+
+  useEffect(() => {
+    fetchUsers();
+    fetchAuditLogs();
+  }, [fetchAuditLogs]);
 
   const handleViewDetails = (auditLog: AuditLog) => {
     setSelectedAuditLog(auditLog);
