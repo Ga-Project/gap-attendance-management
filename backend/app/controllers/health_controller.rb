@@ -3,7 +3,7 @@ class HealthController < ApplicationController
     render json: {
       status: 'ok',
       message: 'Attendance Management API is running',
-      timestamp: Time.current
+      timestamp: Time.current,
     }
   end
 end
