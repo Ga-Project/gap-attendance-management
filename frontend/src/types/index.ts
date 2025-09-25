@@ -71,3 +71,35 @@ export interface AttendanceActionResponse {
     message: string;
     attendance: Attendance;
 }
+
+// Statistics types
+export interface AttendanceStatistics {
+    working_days: number;
+    total_work_minutes: number;
+    total_break_minutes: number;
+    formatted_total_work_time: string;
+    formatted_total_break_time: string;
+    average_work_minutes_per_day: number;
+    formatted_average_work_time_per_day: string;
+}
+
+export interface MonthlyStatistics extends AttendanceStatistics {
+    year: number;
+    month: number;
+}
+
+export interface DateRangeStatistics extends AttendanceStatistics {
+    start_date: string;
+    end_date: string;
+    total_days: number;
+}
+
+export interface MonthlyAttendanceResponse {
+    attendances: Attendance[];
+    statistics: MonthlyStatistics;
+}
+
+export interface StatisticsResponse {
+    monthly_statistics?: MonthlyStatistics;
+    date_range_statistics?: DateRangeStatistics;
+}

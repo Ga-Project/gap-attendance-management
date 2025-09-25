@@ -51,6 +51,28 @@ params.end_date = endDate;
         const response = await api.post('/v1/attendances/break_end');
         return response.data;
     }
+
+    // Get statistics for date range
+    static async getStatistics(startDate: string, endDate: string): Promise<{ date_range_statistics: import('../types').DateRangeStatistics }> {
+        const response = await api.get('/v1/attendances/statistics', {
+            params: { start_date: startDate, end_date: endDate },
+        });
+        return response.data;
+    }
+
+    // Get monthly statistics
+    static async getMonthlyStatistics(year: number, month: number): Promise<{ monthly_statistics: import('../types').MonthlyStatistics }> {
+        const response = await api.get('/v1/attendances/statistics', {
+            params: { year: year.toString(), month: month.toString() },
+        });
+        return response.data;
+    }
+
+    // Get monthly attendance data with statistics
+    static async getMonthlyAttendances(year: number, month: number): Promise<import('../types').MonthlyAttendanceResponse> {
+        const response = await api.get(`/v1/attendances/monthly/${year}/${month}`);
+        return response.data;
+    }
 }
 
 export default AttendanceService;
