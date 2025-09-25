@@ -64,9 +64,9 @@ describe('AttendanceManagement', () => {
   });
 
   it('renders attendance management component', async () => {
-    mockedApi.get.mockResolvedValueOnce({
-      data: { attendances: mockAttendances },
-    });
+    mockedApi.get
+      .mockResolvedValueOnce({ data: { users: [] } })
+      .mockResolvedValueOnce({ data: { attendances: mockAttendances } });
 
     renderWithTheme(<AttendanceManagement />);
 
@@ -75,12 +75,14 @@ describe('AttendanceManagement', () => {
   });
 
   it('displays error message when API call fails', async () => {
-    mockedApi.get.mockRejectedValueOnce(new Error('API Error'));
+    mockedApi.get
+      .mockResolvedValueOnce({ data: { users: [] } })
+      .mockRejectedValueOnce(new Error('API Error'));
 
     renderWithTheme(<AttendanceManagement />);
 
     await waitFor(() => {
-      expect(screen.getByText('データの取得に失敗しました')).toBeInTheDocument();
+      expect(screen.getByText('勤怠データの取得に失敗しました')).toBeInTheDocument();
     });
   });
 });
