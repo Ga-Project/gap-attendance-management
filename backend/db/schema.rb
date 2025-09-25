@@ -10,9 +10,25 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_09_25_093534) do
+ActiveRecord::Schema[7.1].define(version: 2025_09_25_100033) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "attendances", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.date "date", null: false
+    t.datetime "clock_in_time"
+    t.datetime "clock_out_time"
+    t.integer "total_work_minutes", default: 0
+    t.integer "total_break_minutes", default: 0
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["date"], name: "index_attendances_on_date"
+    t.index ["status"], name: "index_attendances_on_status"
+    t.index ["user_id", "date"], name: "index_attendances_on_user_id_and_date", unique: true
+    t.index ["user_id"], name: "index_attendances_on_user_id"
+  end
 
   create_table "users", force: :cascade do |t|
     t.string "google_id"
@@ -25,4 +41,5 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_25_093534) do
     t.index ["google_id"], name: "index_users_on_google_id", unique: true
   end
 
+  add_foreign_key "attendances", "users"
 end
