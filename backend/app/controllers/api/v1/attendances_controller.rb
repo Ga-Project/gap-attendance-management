@@ -8,20 +8,8 @@ module Api
       # GET /api/v1/attendances
       # Get user's attendance history
       def index
-        attendances = current_user.attendances.includes(:attendance_records)
-                                  .order(date: :desc)
-                                  .limit(30) # Limit to last 30 records for performance
-
-        # Apply date filtering if provided
-        if params[:start_date].present? && params[:end_date].present?
-          start_date = Date.parse(params[:start_date])
-          end_date = Date.parse(params[:end_date])
-          attendances = attendances.for_date_range(start_date, end_date)
-        end
-
-        render json: {
-          attendances: attendances.map { |attendance| attendance_response(attendance) },
-        }
+        attendances = fetch_attendances_with_filtering
+        render json: { attendances: attendances.map { |attendance| attendance_response(attendance) } }
       rescue Date::Error
         render json: { error: 'Invalid date format. Use YYYY-MM-DD' }, status: :bad_request
       end
@@ -49,28 +37,10 @@ module Api
       def clock_in
         return render_error('Already clocked in today') unless @today_attendance.can_clock_in?
 
-        ActiveRecord::Base.transaction do
-          # Update attendance record
-          @today_attendance.update!(
-            clock_in_time: Time.current,
-            status: :clocked_in
-          )
-
-          # Create attendance record
-          @today_attendance.attendance_records.create!(
-            record_type: :clock_in,
-            timestamp: Time.current
-          )
+        perform_attendance_action('Successfully clocked in', 'Failed to clock in') do
+          update_attendance_for_clock_in
+          create_attendance_record(:clock_in)
         end
-
-        render json: {
-          message: 'Successfully clocked in',
-          attendance: attendance_response(@today_attendance.reload),
-        }
-      rescue ActiveRecord::RecordInvalid => e
-        render_validation_error(e)
-      rescue StandardError => e
-        render_error('Failed to clock in', e.message)
       end
 
       # POST /api/v1/attendances/clock_out
@@ -78,31 +48,11 @@ module Api
       def clock_out
         return render_error('Cannot clock out. Must be clocked in first') unless @today_attendance.can_clock_out?
 
-        ActiveRecord::Base.transaction do
-          # If currently on break, end the break first
+        perform_attendance_action('Successfully clocked out', 'Failed to clock out') do
           end_current_break if @today_attendance.on_break?
-
-          # Update attendance record
-          @today_attendance.update!(
-            clock_out_time: Time.current,
-            status: :clocked_out
-          )
-
-          # Create attendance record
-          @today_attendance.attendance_records.create!(
-            record_type: :clock_out,
-            timestamp: Time.current
-          )
+          update_attendance_for_clock_out
+          create_attendance_record(:clock_out)
         end
-
-        render json: {
-          message: 'Successfully clocked out',
-          attendance: attendance_response(@today_attendance.reload),
-        }
-      rescue ActiveRecord::RecordInvalid => e
-        render_validation_error(e)
-      rescue StandardError => e
-        render_error('Failed to clock out', e.message)
       end
 
       # POST /api/v1/attendances/break_start
@@ -110,25 +60,10 @@ module Api
       def break_start
         return render_error('Cannot start break. Must be clocked in first') unless @today_attendance.can_start_break?
 
-        ActiveRecord::Base.transaction do
-          # Update attendance status
+        perform_attendance_action('Break started', 'Failed to start break') do
           @today_attendance.update!(status: :on_break)
-
-          # Create attendance record
-          @today_attendance.attendance_records.create!(
-            record_type: :break_start,
-            timestamp: Time.current
-          )
+          create_attendance_record(:break_start)
         end
-
-        render json: {
-          message: 'Break started',
-          attendance: attendance_response(@today_attendance.reload),
-        }
-      rescue ActiveRecord::RecordInvalid => e
-        render_validation_error(e)
-      rescue StandardError => e
-        render_error('Failed to start break', e.message)
       end
 
       # POST /api/v1/attendances/break_end
@@ -136,31 +71,68 @@ module Api
       def break_end
         return render_error('Cannot end break. Must be on break first') unless @today_attendance.can_end_break?
 
-        ActiveRecord::Base.transaction do
-          # Calculate and add break time
+        perform_attendance_action('Break ended', 'Failed to end break') do
           calculate_and_add_break_time
-
-          # Update attendance status back to clocked_in
           @today_attendance.update!(status: :clocked_in)
-
-          # Create attendance record
-          @today_attendance.attendance_records.create!(
-            record_type: :break_end,
-            timestamp: Time.current
-          )
+          create_attendance_record(:break_end)
         end
+      end
+
+      private
+
+      def fetch_attendances_with_filtering
+        attendances = current_user.attendances.includes(:attendance_records)
+                                  .order(date: :desc)
+                                  .limit(30) # Limit to last 30 records for performance
+
+        return attendances unless date_filtering_params_present?
+
+        apply_date_filtering(attendances)
+      end
+
+      def date_filtering_params_present?
+        params[:start_date].present? && params[:end_date].present?
+      end
+
+      def apply_date_filtering(attendances)
+        start_date = Date.parse(params[:start_date])
+        end_date = Date.parse(params[:end_date])
+        attendances.for_date_range(start_date, end_date)
+      end
+
+      def perform_attendance_action(success_message, error_message, &)
+        ActiveRecord::Base.transaction(&)
 
         render json: {
-          message: 'Break ended',
+          message: success_message,
           attendance: attendance_response(@today_attendance.reload),
         }
       rescue ActiveRecord::RecordInvalid => e
         render_validation_error(e)
       rescue StandardError => e
-        render_error('Failed to end break', e.message)
+        render_error(error_message, e.message)
       end
 
-      private
+      def update_attendance_for_clock_in
+        @today_attendance.update!(
+          clock_in_time: Time.current,
+          status: :clocked_in
+        )
+      end
+
+      def update_attendance_for_clock_out
+        @today_attendance.update!(
+          clock_out_time: Time.current,
+          status: :clocked_out
+        )
+      end
+
+      def create_attendance_record(record_type)
+        @today_attendance.attendance_records.create!(
+          record_type: record_type,
+          timestamp: Time.current
+        )
+      end
 
       def set_attendance
         @attendance = current_user.attendances.find(params[:id])
