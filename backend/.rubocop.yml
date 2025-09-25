@@ -1,5 +1,5 @@
 AllCops:
-  TargetRubyVersion: 3.1
+  TargetRubyVersion: 3.2
   NewCops: enable
   Exclude:
     - 'db/schema.rb'
@@ -20,7 +20,7 @@ Style/Documentation:
 Style/FrozenStringLiteralComment:
   Enabled: false
 
-Metrics/LineLength:
+Layout/LineLength:
   Max: 120
 
 Metrics/MethodLength:
@@ -34,9 +34,6 @@ Metrics/BlockLength:
     - 'spec/**/*'
     - 'config/routes.rb'
 
-Layout/LineLength:
-  Max: 120
-
 Style/StringLiterals:
   EnforcedStyle: single_quotes
 
@@ -47,7 +44,4 @@ Style/TrailingCommaInHashLiteral:
   EnforcedStyleForMultiline: consistent_comma
 
 Naming/VariableNumber:
-  Enabled: false
-
-Rails/FilePath:
   Enabled: false
