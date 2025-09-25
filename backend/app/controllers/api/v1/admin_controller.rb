@@ -7,8 +7,8 @@ module Api
       # Get all users with their basic information
       def users
         users = User.includes(:attendances)
-                   .select(:id, :name, :email, :role, :created_at)
-                   .order(:name)
+                    .select(:id, :name, :email, :role, :created_at)
+                    .order(:name)
 
         render json: {
           users: users.map do |user|
@@ -18,58 +18,16 @@ module Api
               email: user.email,
               role: user.role,
               created_at: user.created_at,
-              total_attendances: user.attendances.count
+              total_attendances: user.attendances.count,
             }
-          end
+          end,
         }
       end
 
       # Get all attendance data with filtering options
       def attendances
-        attendances = Attendance.includes(:user, :attendance_records)
-                                .joins(:user)
-
-        # Apply date filtering if provided
-        if params[:start_date].present?
-          attendances = attendances.where('date >= ?', Date.parse(params[:start_date]))
-        end
-
-        if params[:end_date].present?
-          attendances = attendances.where('date <= ?', Date.parse(params[:end_date]))
-        end
-
-        # Apply user filtering if provided
-        if params[:user_id].present?
-          attendances = attendances.where(user_id: params[:user_id])
-        end
-
-        attendances = attendances.order('date DESC, users.name ASC')
-
-        render json: {
-          attendances: attendances.map do |attendance|
-            {
-              id: attendance.id,
-              user: {
-                id: attendance.user.id,
-                name: attendance.user.name,
-                email: attendance.user.email
-              },
-              date: attendance.date,
-              clock_in_time: attendance.clock_in_time,
-              clock_out_time: attendance.clock_out_time,
-              total_work_minutes: attendance.total_work_minutes,
-              total_break_minutes: attendance.total_break_minutes,
-              status: attendance.status,
-              records: attendance.attendance_records.map do |record|
-                {
-                  id: record.id,
-                  record_type: record.record_type,
-                  timestamp: record.timestamp
-                }
-              end
-            }
-          end
-        }
+        attendances = filter_attendances(base_attendances_query)
+        render json: { attendances: attendances.map { |attendance| format_attendance_response(attendance) } }
       end
 
       # Update attendance record (for corrections)
@@ -77,18 +35,18 @@ module Api
         # Validate reason parameter
         unless params[:reason].present?
           return render json: {
-            error: 'Reason is required for attendance modifications'
+            error: 'Reason is required for attendance modifications',
           }, status: :unprocessable_entity
         end
 
         attendance = Attendance.find(params[:id])
-        
+
         # Store original values for audit log
         original_values = {
           clock_in_time: attendance.clock_in_time,
           clock_out_time: attendance.clock_out_time,
           total_work_minutes: attendance.total_work_minutes,
-          total_break_minutes: attendance.total_break_minutes
+          total_break_minutes: attendance.total_break_minutes,
         }
 
         # Update attendance with new values
@@ -103,12 +61,12 @@ module Api
 
           render json: {
             message: 'Attendance updated successfully',
-            attendance: format_attendance_response(attendance)
+            attendance: format_attendance_response(attendance),
           }
         else
           render json: {
             error: 'Failed to update attendance',
-            details: attendance.errors.full_messages
+            details: attendance.errors.full_messages,
           }, status: :unprocessable_entity
         end
       rescue ActiveRecord::RecordNotFound
@@ -118,21 +76,15 @@ module Api
       # Get audit logs with filtering
       def audit_logs
         logs = AuditLog.includes(:user, :target_user)
-                      .order(created_at: :desc)
+                       .order(created_at: :desc)
 
         # Apply date filtering if provided
-        if params[:start_date].present?
-          logs = logs.where('created_at >= ?', Date.parse(params[:start_date]))
-        end
+        logs = logs.where('created_at >= ?', Date.parse(params[:start_date])) if params[:start_date].present?
 
-        if params[:end_date].present?
-          logs = logs.where('created_at <= ?', Date.parse(params[:end_date]).end_of_day)
-        end
+        logs = logs.where('created_at <= ?', Date.parse(params[:end_date]).end_of_day) if params[:end_date].present?
 
         # Apply user filtering if provided
-        if params[:target_user_id].present?
-          logs = logs.where(target_user_id: params[:target_user_id])
-        end
+        logs = logs.where(target_user_id: params[:target_user_id]) if params[:target_user_id].present?
 
         logs = logs.limit(params[:limit]&.to_i || 100)
 
@@ -143,47 +95,54 @@ module Api
               admin_user: {
                 id: log.user.id,
                 name: log.user.name,
-                email: log.user.email
+                email: log.user.email,
               },
               target_user: {
                 id: log.target_user.id,
                 name: log.target_user.name,
-                email: log.target_user.email
+                email: log.target_user.email,
               },
               action: log.action,
               changes: log.change_data,
               reason: log.reason,
-              created_at: log.created_at
+              created_at: log.created_at,
             }
-          end
+          end,
         }
       end
 
       # Export attendance data as CSV
       def export_csv
-        attendances = Attendance.includes(:user, :attendance_records)
-                                .joins(:user)
-
-        # Apply date filtering
-        if params[:start_date].present?
-          attendances = attendances.where('date >= ?', Date.parse(params[:start_date]))
-        end
-
-        if params[:end_date].present?
-          attendances = attendances.where('date <= ?', Date.parse(params[:end_date]))
-        end
-
-        attendances = attendances.order('date ASC, users.name ASC')
-
+        attendances = filter_attendances_for_export(base_attendances_query)
         csv_data = generate_csv(attendances)
+        send_csv_data(csv_data)
+      end
 
+      private
+
+      def base_attendances_query
+        Attendance.includes(:user, :attendance_records).joins(:user)
+      end
+
+      def filter_attendances(attendances)
+        attendances = attendances.where('date >= ?', Date.parse(params[:start_date])) if params[:start_date].present?
+        attendances = attendances.where('date <= ?', Date.parse(params[:end_date])) if params[:end_date].present?
+        attendances = attendances.where(user_id: params[:user_id]) if params[:user_id].present?
+        attendances.order('date DESC, users.name ASC')
+      end
+
+      def filter_attendances_for_export(attendances)
+        attendances = attendances.where('date >= ?', Date.parse(params[:start_date])) if params[:start_date].present?
+        attendances = attendances.where('date <= ?', Date.parse(params[:end_date])) if params[:end_date].present?
+        attendances.order('date ASC, users.name ASC')
+      end
+
+      def send_csv_data(csv_data)
         send_data csv_data,
                   filename: "attendance_export_#{Date.current.strftime('%Y%m%d')}.csv",
                   type: 'text/csv',
                   disposition: 'attachment'
       end
-
-      private
 
       def attendance_params
         params.require(:attendance).permit(:clock_in_time, :clock_out_time, :total_work_minutes, :total_break_minutes)
@@ -191,15 +150,15 @@ module Api
 
       def create_audit_log(attendance, original_values, reason)
         changes = {}
-        
+
         attendance_params.each do |key, new_value|
           original_value = original_values[key.to_sym]
-          if original_value != new_value
-            changes[key] = {
-              from: original_value,
-              to: new_value
-            }
-          end
+          next unless original_value != new_value
+
+          changes[key] = {
+            from: original_value,
+            to: new_value,
+          }
         end
 
         AuditLog.create!(
@@ -217,14 +176,14 @@ module Api
           user: {
             id: attendance.user.id,
             name: attendance.user.name,
-            email: attendance.user.email
+            email: attendance.user.email,
           },
           date: attendance.date,
           clock_in_time: attendance.clock_in_time,
           clock_out_time: attendance.clock_out_time,
           total_work_minutes: attendance.total_work_minutes,
           total_break_minutes: attendance.total_break_minutes,
-          status: attendance.status
+          status: attendance.status,
         }
       end
 
@@ -241,7 +200,7 @@ module Api
             'Clock Out',
             'Work Hours',
             'Break Minutes',
-            'Status'
+            'Status',
           ]
 
           # CSV data rows
@@ -256,7 +215,7 @@ module Api
               attendance.clock_out_time&.strftime('%H:%M'),
               work_hours,
               attendance.total_break_minutes || 0,
-              attendance.status.humanize
+              attendance.status.humanize,
             ]
           end
         end

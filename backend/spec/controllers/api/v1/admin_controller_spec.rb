@@ -19,12 +19,12 @@ RSpec.describe Api::V1::AdminController, type: :controller do
 
     it 'returns all users with their basic information' do
       get :users
-      
+
       expect(response).to have_http_status(:ok)
       json_response = JSON.parse(response.body)
       expect(json_response['users']).to be_an(Array)
       expect(json_response['users'].length).to eq(4) # 3 employees + 1 admin
-      
+
       user_data = json_response['users'].first
       expect(user_data).to have_key('id')
       expect(user_data).to have_key('name')
@@ -54,12 +54,12 @@ RSpec.describe Api::V1::AdminController, type: :controller do
 
     it 'returns all attendances with user information' do
       get :attendances
-      
+
       expect(response).to have_http_status(:ok)
       json_response = JSON.parse(response.body)
       expect(json_response['attendances']).to be_an(Array)
       expect(json_response['attendances'].length).to eq(2)
-      
+
       attendance_data = json_response['attendances'].first
       expect(attendance_data).to have_key('id')
       expect(attendance_data).to have_key('user')
@@ -69,7 +69,7 @@ RSpec.describe Api::V1::AdminController, type: :controller do
 
     it 'filters by user_id when provided' do
       get :attendances, params: { user_id: employee_user.id }
-      
+
       expect(response).to have_http_status(:ok)
       json_response = JSON.parse(response.body)
       expect(json_response['attendances'].length).to eq(1)
@@ -77,11 +77,11 @@ RSpec.describe Api::V1::AdminController, type: :controller do
     end
 
     it 'filters by date range when provided' do
-      get :attendances, params: { 
-        start_date: Date.current.to_s, 
-        end_date: Date.current.to_s 
+      get :attendances, params: {
+        start_date: Date.current.to_s,
+        end_date: Date.current.to_s,
       }
-      
+
       expect(response).to have_http_status(:ok)
       json_response = JSON.parse(response.body)
       expect(json_response['attendances'].length).to eq(1)
@@ -96,29 +96,29 @@ RSpec.describe Api::V1::AdminController, type: :controller do
         id: attendance.id,
         attendance: {
           clock_in_time: '2023-01-01T09:00:00Z',
-          clock_out_time: '2023-01-01T18:00:00Z'
+          clock_out_time: '2023-01-01T18:00:00Z',
         },
-        reason: 'Correcting time entry error'
+        reason: 'Correcting time entry error',
       }
     end
 
     it 'updates attendance record successfully' do
       put :update_attendance, params: update_params
-      
+
       expect(response).to have_http_status(:ok)
       json_response = JSON.parse(response.body)
       expect(json_response['message']).to eq('Attendance updated successfully')
-      
+
       attendance.reload
       expect(attendance.clock_in_time.strftime('%H:%M')).to eq('09:00')
       expect(attendance.clock_out_time.strftime('%H:%M')).to eq('18:00')
     end
 
     it 'creates audit log entry' do
-      expect {
+      expect do
         put :update_attendance, params: update_params
-      }.to change(AuditLog, :count).by(1)
-      
+      end.to change(AuditLog, :count).by(1)
+
       audit_log = AuditLog.last
       expect(audit_log.user).to eq(admin_user)
       expect(audit_log.target_user).to eq(employee_user)
@@ -127,8 +127,8 @@ RSpec.describe Api::V1::AdminController, type: :controller do
     end
 
     it 'returns error for invalid attendance ID' do
-      put :update_attendance, params: update_params.merge(id: 99999)
-      
+      put :update_attendance, params: update_params.merge(id: 99_999)
+
       expect(response).to have_http_status(:not_found)
       json_response = JSON.parse(response.body)
       expect(json_response['error']).to eq('Attendance record not found')
@@ -137,31 +137,30 @@ RSpec.describe Api::V1::AdminController, type: :controller do
     it 'returns error when reason is missing' do
       params_without_reason = update_params.dup
       params_without_reason.delete(:reason)
-      
+
       put :update_attendance, params: params_without_reason
-      
+
       expect(response).to have_http_status(:unprocessable_entity)
     end
   end
 
   describe 'GET #audit_logs' do
     let!(:audit_log) do
-      create(:audit_log, 
-        user: admin_user, 
-        target_user: employee_user,
-        action: 'update_attendance',
-        reason: 'Test correction'
-      )
+      create(:audit_log,
+             user: admin_user,
+             target_user: employee_user,
+             action: 'update_attendance',
+             reason: 'Test correction')
     end
 
     it 'returns audit logs with user information' do
       get :audit_logs
-      
+
       expect(response).to have_http_status(:ok)
       json_response = JSON.parse(response.body)
       expect(json_response['audit_logs']).to be_an(Array)
       expect(json_response['audit_logs'].length).to eq(1)
-      
+
       log_data = json_response['audit_logs'].first
       expect(log_data).to have_key('admin_user')
       expect(log_data).to have_key('target_user')
@@ -170,10 +169,10 @@ RSpec.describe Api::V1::AdminController, type: :controller do
     end
 
     it 'filters by target_user_id when provided' do
-      other_log = create(:audit_log, user: admin_user, target_user: other_employee)
-      
+      create(:audit_log, user: admin_user, target_user: other_employee)
+
       get :audit_logs, params: { target_user_id: employee_user.id }
-      
+
       expect(response).to have_http_status(:ok)
       json_response = JSON.parse(response.body)
       expect(json_response['audit_logs'].length).to eq(1)
@@ -186,7 +185,7 @@ RSpec.describe Api::V1::AdminController, type: :controller do
 
     it 'returns CSV file with attendance data' do
       get :export_csv
-      
+
       expect(response).to have_http_status(:ok)
       expect(response.content_type).to eq('text/csv')
       expect(response.headers['Content-Disposition']).to include('attachment')
@@ -195,11 +194,11 @@ RSpec.describe Api::V1::AdminController, type: :controller do
 
     it 'includes proper CSV headers' do
       get :export_csv
-      
+
       csv_content = response.body
       lines = csv_content.split("\n")
       headers = lines.first.split(',')
-      
+
       expect(headers).to include('Date')
       expect(headers).to include('Employee Name')
       expect(headers).to include('Employee Email')
