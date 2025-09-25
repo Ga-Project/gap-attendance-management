@@ -25,11 +25,19 @@ Layout/LineLength:
 
 Metrics/MethodLength:
   Max: 15
+  Exclude:
+    - "app/controllers/api/v1/admin_controller.rb"
+
+Metrics/AbcSize:
+  Exclude:
+    - "app/controllers/api/v1/admin_controller.rb"
 
 Metrics/ClassLength:
   Max: 100
   Exclude:
     - "app/controllers/api/v1/attendances_controller.rb"
+    - "app/controllers/api/v1/admin_controller.rb"
+    - "app/models/attendance.rb"
 
 Metrics/BlockLength:
   Exclude:

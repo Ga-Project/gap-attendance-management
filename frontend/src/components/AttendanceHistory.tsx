@@ -9,7 +9,6 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    TextField,
     Button,
     Grid,
     Card,
@@ -185,8 +184,8 @@ return '-';
                             <TableRow key={attendance.id}>
                                 <TableCell>{formatDate(attendance.date)}</TableCell>
                                 <TableCell>{getStatusText(attendance.status)}</TableCell>
-                                <TableCell>{formatTime(attendance.clock_in_time)}</TableCell>
-                                <TableCell>{formatTime(attendance.clock_out_time)}</TableCell>
+                                <TableCell>{formatTime(attendance.clock_in_time || null)}</TableCell>
+                                <TableCell>{formatTime(attendance.clock_out_time || null)}</TableCell>
                                 <TableCell>{attendance.formatted_work_time}</TableCell>
                                 <TableCell>{attendance.formatted_break_time}</TableCell>
                                 <TableCell>{attendance.formatted_total_office_time}</TableCell>
@@ -270,7 +269,7 @@ return '-';
                                     label="開始日"
                                     value={startDate}
                                     onChange={setStartDate}
-                                    renderInput={(params) => <TextField {...params} />}
+                                    slotProps={{ textField: { fullWidth: true } }}
                                 />
                             </Grid>
                             <Grid item>
@@ -278,7 +277,7 @@ return '-';
                                     label="終了日"
                                     value={endDate}
                                     onChange={setEndDate}
-                                    renderInput={(params) => <TextField {...params} />}
+                                    slotProps={{ textField: { fullWidth: true } }}
                                 />
                             </Grid>
                             <Grid item>

@@ -25,12 +25,11 @@ Rails.application.routes.draw do
       end
 
       # Admin routes
-      namespace :admin do
-        resources :users, only: %i[index show]
-        resources :attendances, only: %i[index show update]
-        get :export, to: 'attendances#export'
-        resources :audit_logs, only: [:index]
-      end
+      get 'admin/users', to: 'admin#users'
+      get 'admin/attendances', to: 'admin#attendances'
+      put 'admin/attendances/:id', to: 'admin#update_attendance'
+      get 'admin/audit_logs', to: 'admin#audit_logs'
+      get 'admin/export_csv', to: 'admin#export_csv'
     end
   end
 end
