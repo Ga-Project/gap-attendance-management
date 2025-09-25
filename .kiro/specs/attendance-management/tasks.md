@@ -12,7 +12,7 @@
   - GitHub ActionsワークフローにLintチェックを統合
   - _Requirements: 11.1, 11.2, 11.4, 13.2, 13.3_
 
-- [ ] 3. Rails APIプロジェクトの初期設定
+- [x] 3. Rails APIプロジェクトの初期設定
   - Rails 7 API modeプロジェクトを作成し、基本的なGemfileを設定
   - PostgreSQLデータベース接続とCORS設定を実装
   - JWT認証とGoogle OAuth2の基本設定を追加
