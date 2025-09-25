@@ -62,19 +62,45 @@ docker-compose up
 
 ## 開発ワークフロー
 
-### コード品質チェック
+### コード品質管理
+
+このプロジェクトでは、コード品質を維持するために以下のツールを使用しています：
+
+#### Lintツール
+- **Backend (Ruby)**: Rubocop - Ruby標準とRails best practicesに準拠
+- **Frontend (TypeScript/React)**: ESLint + Prettier - TypeScript/React標準に準拠
+
+#### Pre-commitフックのセットアップ
+初回セットアップ時に以下を実行してください：
+```bash
+./scripts/setup-pre-commit.sh
+```
+
+これにより、コミット前に自動的にLintチェックが実行されます。
+
+#### 手動でのLintチェック
 
 バックエンド（Ruby）:
 ```bash
 cd backend
 bundle exec rubocop
+# 自動修正可能な問題を修正
+bundle exec rubocop -a
 ```
 
 フロントエンド（TypeScript/React）:
 ```bash
 cd frontend
 npm run lint
+# 自動修正可能な問題を修正
+npm run lint:fix
 ```
+
+#### CI/CDでの品質チェック
+GitHub Actionsにより、以下が自動実行されます：
+- プルリクエスト作成時のLintチェック
+- テスト実行前の品質チェック
+- メインブランチへのマージ前の品質ゲート
 
 ### テスト実行
 
