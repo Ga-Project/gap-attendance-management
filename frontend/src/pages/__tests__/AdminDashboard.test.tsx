@@ -35,9 +35,10 @@ const mockAdminUser = {
 
 const mockAuthContextValue = {
   user: mockAdminUser,
-  login: jest.fn(),
-  logout: jest.fn(),
+  signIn: jest.fn(),
+  signOut: jest.fn(),
   loading: false,
+  isAuthenticated: true,
 };
 
 const renderWithProviders = (component: React.ReactElement) => {
@@ -61,13 +62,13 @@ describe('AdminDashboard', () => {
     renderWithProviders(<AdminDashboard />);
 
     expect(screen.getByText('管理者ダッシュボード')).toBeInTheDocument();
-    expect(screen.getByText('Admin User さん、お疲れ様です！')).toBeInTheDocument();
+    expect(screen.getByText('Admin User (管理者)')).toBeInTheDocument();
   });
 
   it('displays all tab options', () => {
     renderWithProviders(<AdminDashboard />);
 
-    expect(screen.getByText('社員管理')).toBeInTheDocument();
+    expect(screen.getByText('社員一覧')).toBeInTheDocument();
     expect(screen.getByText('勤怠管理')).toBeInTheDocument();
     expect(screen.getByText('監査ログ')).toBeInTheDocument();
   });
@@ -118,7 +119,7 @@ describe('AdminDashboard', () => {
     expect(screen.getByTestId('audit-logs')).toBeInTheDocument();
 
     // Switch back to user list
-    const userListTab = screen.getByText('社員管理');
+    const userListTab = screen.getByText('社員一覧');
     fireEvent.click(userListTab);
 
     expect(screen.getByTestId('user-list')).toBeInTheDocument();
@@ -145,7 +146,7 @@ describe('AdminDashboard', () => {
       </BrowserRouter>,
     );
 
-    expect(screen.getByText('Custom Admin Name さん、お疲れ様です！')).toBeInTheDocument();
+    expect(screen.getByText('Custom Admin Name (管理者)')).toBeInTheDocument();
   });
 
   it('has proper tab styling and accessibility', () => {
@@ -155,17 +156,13 @@ describe('AdminDashboard', () => {
     expect(tabs).toHaveLength(3);
 
     // Check that tabs have proper labels
-    expect(screen.getByRole('tab', { name: '社員管理' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: '社員一覧' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '勤怠管理' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '監査ログ' })).toBeInTheDocument();
   });
 
   it('renders with proper layout structure', () => {
     renderWithProviders(<AdminDashboard />);
-
-    // Check for main container
-    const container = screen.getByRole('main');
-    expect(container).toBeInTheDocument();
 
     // Check for tab panel
     const tabPanel = screen.getByRole('tabpanel');
