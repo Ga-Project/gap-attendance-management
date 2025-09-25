@@ -16,89 +16,76 @@ class AttendanceService
   def clock_in(attendance)
     return { error: 'Already clocked in today' } unless attendance.can_clock_in?
 
-    ActiveRecord::Base.transaction do
-      attendance.update!(
-        clock_in_time: Time.current,
-        status: :clocked_in
-      )
-
-      attendance.attendance_records.create!(
-        record_type: :clock_in,
-        timestamp: Time.current
-      )
+    execute_attendance_action('Successfully clocked in', 'Failed to clock in') do
+      perform_clock_in(attendance)
     end
-
-    { success: true, message: 'Successfully clocked in' }
-  rescue ActiveRecord::RecordInvalid => e
-    { error: 'Validation failed', details: e.record.errors.full_messages }
-  rescue StandardError => e
-    { error: 'Failed to clock in', details: e.message }
   end
 
   def clock_out(attendance)
     return { error: 'Cannot clock out. Must be clocked in first' } unless attendance.can_clock_out?
 
-    ActiveRecord::Base.transaction do
-      end_current_break(attendance) if attendance.on_break?
-
-      attendance.update!(
-        clock_out_time: Time.current,
-        status: :clocked_out
-      )
-
-      attendance.attendance_records.create!(
-        record_type: :clock_out,
-        timestamp: Time.current
-      )
+    execute_attendance_action('Successfully clocked out', 'Failed to clock out') do
+      perform_clock_out(attendance)
     end
-
-    { success: true, message: 'Successfully clocked out' }
-  rescue ActiveRecord::RecordInvalid => e
-    { error: 'Validation failed', details: e.record.errors.full_messages }
-  rescue StandardError => e
-    { error: 'Failed to clock out', details: e.message }
   end
 
   def start_break(attendance)
     return { error: 'Cannot start break. Must be clocked in first' } unless attendance.can_start_break?
 
-    ActiveRecord::Base.transaction do
+    execute_attendance_action('Break started', 'Failed to start break') do
       attendance.update!(status: :on_break)
-
-      attendance.attendance_records.create!(
-        record_type: :break_start,
-        timestamp: Time.current
-      )
+      create_attendance_record(attendance, :break_start)
     end
-
-    { success: true, message: 'Break started' }
-  rescue ActiveRecord::RecordInvalid => e
-    { error: 'Validation failed', details: e.record.errors.full_messages }
-  rescue StandardError => e
-    { error: 'Failed to start break', details: e.message }
   end
 
   def end_break(attendance)
     return { error: 'Cannot end break. Must be on break first' } unless attendance.can_end_break?
 
-    ActiveRecord::Base.transaction do
+    execute_attendance_action('Break ended', 'Failed to end break') do
       calculate_and_add_break_time(attendance)
       attendance.update!(status: :clocked_in)
-
-      attendance.attendance_records.create!(
-        record_type: :break_end,
-        timestamp: Time.current
-      )
+      create_attendance_record(attendance, :break_end)
     end
-
-    { success: true, message: 'Break ended' }
-  rescue ActiveRecord::RecordInvalid => e
-    { error: 'Validation failed', details: e.record.errors.full_messages }
-  rescue StandardError => e
-    { error: 'Failed to end break', details: e.message }
   end
 
   private
+
+  def execute_attendance_action(success_message, error_message, &)
+    ActiveRecord::Base.transaction(&)
+
+    { success: true, message: success_message }
+  rescue ActiveRecord::RecordInvalid => e
+    { error: 'Validation failed', details: e.record.errors.full_messages }
+  rescue StandardError => e
+    { error: error_message, details: e.message }
+  end
+
+  def perform_clock_in(attendance)
+    attendance.update!(
+      clock_in_time: Time.current,
+      status: :clocked_in
+    )
+
+    create_attendance_record(attendance, :clock_in)
+  end
+
+  def perform_clock_out(attendance)
+    end_current_break(attendance) if attendance.on_break?
+
+    attendance.update!(
+      clock_out_time: Time.current,
+      status: :clocked_out
+    )
+
+    create_attendance_record(attendance, :clock_out)
+  end
+
+  def create_attendance_record(attendance, record_type)
+    attendance.attendance_records.create!(
+      record_type: record_type,
+      timestamp: Time.current
+    )
+  end
 
   def calculate_and_add_break_time(attendance)
     break_start_record = attendance.attendance_records
@@ -115,10 +102,6 @@ class AttendanceService
 
   def end_current_break(attendance)
     calculate_and_add_break_time(attendance)
-
-    attendance.attendance_records.create!(
-      record_type: :break_end,
-      timestamp: Time.current
-    )
+    create_attendance_record(attendance, :break_end)
   end
 end
