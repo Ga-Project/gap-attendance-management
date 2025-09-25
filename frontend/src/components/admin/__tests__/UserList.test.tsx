@@ -57,6 +57,13 @@ const mockAttendances = [
 describe('UserList Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Setup DOM environment
+    document.body.innerHTML = '<div id="root"></div>';
+  });
+
+  afterEach(() => {
+    // Cleanup DOM
+    document.body.innerHTML = '';
   });
 
   it('renders user list tab by default', async () => {
@@ -166,6 +173,32 @@ describe('UserList Component', () => {
     await waitFor(() => {
       expect(screen.getByText('Test User 1さんの勤怠履歴')).toBeInTheDocument();
     });
+  });
+
+  it('displays CSV export button in attendance tab', async () => {
+    mockedApi.get
+      .mockResolvedValueOnce({ data: { users: mockUsers } })
+      .mockResolvedValueOnce({ data: { attendances: mockAttendances } });
+
+    renderWithTheme(<UserList />);
+
+    // Wait for initial load
+    await waitFor(() => {
+      expect(screen.getByText('Test User 1')).toBeInTheDocument();
+    });
+
+    // Switch to attendance tab
+    const attendanceTab = screen.getByText('勤怠実績');
+    fireEvent.click(attendanceTab);
+
+    // Wait for CSV export button to appear
+    await waitFor(() => {
+      expect(screen.getByText('CSV エクスポート')).toBeInTheDocument();
+    });
+
+    // Verify the button is clickable
+    const exportButton = screen.getByText('CSV エクスポート');
+    expect(exportButton).toBeEnabled();
   });
 
   it('handles API errors gracefully', async () => {
