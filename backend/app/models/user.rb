@@ -4,7 +4,7 @@ class User < ApplicationRecord
 
   # Associations
   has_many :attendances, dependent: :destroy
-  has_many :audit_logs, dependent: :destroy
+  # has_many :audit_logs, dependent: :destroy  # Will be added in task 5.4
 
   # Validations
   validates :google_id, presence: true, uniqueness: true
