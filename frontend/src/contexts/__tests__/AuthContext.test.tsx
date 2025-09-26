@@ -31,11 +31,19 @@ const TestComponent = () => {
   }
   const { user, signIn, signOut, loading } = context;
 
+  const handleSignIn = async () => {
+    try {
+      await signIn();
+    } catch (error) {
+      // Error is handled by AuthContext, just ignore here
+    }
+  };
+
   return (
     <div>
       <div data-testid="loading">{loading ? 'loading' : 'not-loading'}</div>
       <div data-testid="user">{user ? user.name : 'no-user'}</div>
-      <button onClick={signIn}>Login</button>
+      <button onClick={handleSignIn}>Login</button>
       <button onClick={signOut}>Logout</button>
     </div>
   );

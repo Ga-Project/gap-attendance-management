@@ -29,6 +29,18 @@ afterAll(() => {
   console.error = originalError;
 });
 
+// Clean up after each test to prevent memory leaks
+afterEach(() => {
+  // Clear all timers
+  jest.clearAllTimers();
+  // Clear all mocks
+  jest.clearAllMocks();
+  // Force garbage collection if available
+  if (global.gc) {
+    global.gc();
+  }
+});
+
 // Mock URL.createObjectURL and revokeObjectURL for file download tests
 global.URL.createObjectURL = jest.fn(() => 'mocked-url');
 global.URL.revokeObjectURL = jest.fn();
