@@ -27,7 +27,8 @@ RSpec.describe GoogleAuthService, type: :service do
         expect(result[:user]).to be_a(User)
         expect(result[:access_token]).to be_present
         expect(result[:refresh_token]).to be_present
-        expect(result[:error]).to be_nil
+        expect(result[:access_token]).to be_present
+        expect(result[:refresh_token]).to be_present
       end
 
       it 'finds existing user when user already exists' do
@@ -53,14 +54,17 @@ RSpec.describe GoogleAuthService, type: :service do
     end
 
     context 'with invalid auth data' do
-      it 'returns error for nil auth data' do
-        result = GoogleAuthService.authenticate(nil)
-        expect(result[:error]).to eq('Invalid auth data')
+      it 'raises GoogleAuthError for nil auth data' do
+        expect do
+          GoogleAuthService.authenticate(nil)
+        end.to raise_error(ServiceErrors::GoogleAuthError, 'Invalid authentication data')
       end
 
-      it 'returns error for auth data without info' do
-        result = GoogleAuthService.authenticate({ 'uid' => '123' })
-        expect(result[:error]).to eq('Invalid auth data')
+      it 'raises GoogleAuthError for auth data without info' do
+        expect do
+          GoogleAuthService.authenticate({ 'uid' => '123' })
+        end.to raise_error(ServiceErrors::GoogleAuthError,
+                           'Invalid authentication data')
       end
     end
   end
@@ -93,17 +97,15 @@ RSpec.describe GoogleAuthService, type: :service do
     end
 
     context 'with invalid token' do
-      it 'returns nil for invalid token' do
-        result = GoogleAuthService.verify_id_token('invalid_token')
-        expect(result).to be_nil
+      it 'raises GoogleAuthError for invalid token' do
+        expect { GoogleAuthService.verify_id_token('invalid_token') }.to raise_error(ServiceErrors::GoogleAuthError)
       end
 
-      it 'returns nil for token with wrong audience' do
+      it 'raises GoogleApiError for token with wrong audience' do
         payload = valid_token_payload.merge('aud' => 'wrong-client-id')
         token = JWT.encode(payload, 'secret', 'HS256')
 
-        result = GoogleAuthService.verify_id_token(token)
-        expect(result).to be_nil
+        expect { GoogleAuthService.verify_id_token(token) }.to raise_error(ServiceErrors::GoogleApiError)
       end
     end
   end

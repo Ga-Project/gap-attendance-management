@@ -9,11 +9,16 @@ class JwtService
 
     # Decode JWT token
     def decode(token)
+      raise ServiceErrors::TokenError, 'Token is required' if token.blank?
+
       decoded = JWT.decode(token, JwtConfig::JWT_SECRET, true, { algorithm: JwtConfig::JWT_ALGORITHM })
       decoded[0]
+    rescue JWT::ExpiredSignature => e
+      Rails.logger.error "JWT Expired: #{e.message}"
+      raise JWT::ExpiredSignature, 'Token has expired'
     rescue JWT::DecodeError => e
       Rails.logger.error "JWT Decode Error: #{e.message}"
-      nil
+      raise JWT::DecodeError, 'Invalid token format'
     end
 
     # Generate access token for user
@@ -39,12 +44,18 @@ class JwtService
     # Verify token and return user
     def verify_token(token)
       decoded_token = decode(token)
-      return nil unless decoded_token
 
       user_id = decoded_token['user_id']
-      User.find_by(id: user_id)
-    rescue ActiveRecord::RecordNotFound
-      nil
+      user = User.find_by(id: user_id)
+
+      raise ServiceErrors::TokenError, 'User not found for token' unless user
+
+      user
+    rescue JWT::ExpiredSignature, JWT::DecodeError
+      raise
+    rescue StandardError => e
+      Rails.logger.error "Token verification error: #{e.message}"
+      raise ServiceErrors::TokenError.new('Token verification failed', details: e.message)
     end
 
     # Check if token is expired

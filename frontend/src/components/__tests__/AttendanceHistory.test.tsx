@@ -45,7 +45,7 @@ jest.mock('@mui/x-date-pickers/AdapterDateFns', () => {
 
 const mockAttendances: Attendance[] = [
     {
-        id: 1,
+        id: 'id: 1',
         date: '2024-01-15',
         status: 'clocked_out',
         clock_in_time: '2024-01-15T09:00:00Z',
@@ -60,7 +60,7 @@ const mockAttendances: Attendance[] = [
         records: [],
     },
     {
-        id: 2,
+        id: 'id: 2',
         date: '2024-01-16',
         status: 'clocked_out',
         clock_in_time: '2024-01-16T09:30:00Z',

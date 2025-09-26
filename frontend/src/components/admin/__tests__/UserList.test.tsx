@@ -20,7 +20,7 @@ const renderWithTheme = (component: React.ReactElement) => {
 
 const mockUsers = [
   {
-    id: 1,
+    id: 'id: 1',
     name: 'Test User 1',
     email: 'test1@example.com',
     role: 'employee' as const,
@@ -28,7 +28,7 @@ const mockUsers = [
     total_attendances: 5,
   },
   {
-    id: 2,
+    id: 'id: 2',
     name: 'Test Admin',
     email: 'admin@example.com',
     role: 'admin' as const,
@@ -39,9 +39,9 @@ const mockUsers = [
 
 const mockAttendances = [
   {
-    id: 1,
+    id: 'id: 1',
     user: {
-      id: 1,
+      id: 'id: 1',
       name: 'Test User 1',
       email: 'test1@example.com',
     },

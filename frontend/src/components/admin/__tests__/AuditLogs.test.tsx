@@ -53,14 +53,14 @@ const renderWithTheme = (component: React.ReactElement) => {
 };
 
 const mockAuditLog = {
-  id: 1,
+  id: 'id: 1',
   admin_user: {
-    id: 1,
+    id: 'id: 1',
     name: 'Admin User',
     email: 'admin@example.com',
   },
   target_user: {
-    id: 2,
+    id: 'id: 2',
     name: 'Target User',
     email: 'target@example.com',
   },
@@ -77,13 +77,13 @@ const mockAuditLogs = [mockAuditLog];
 
 const mockUsers = [
   {
-    id: 1,
+    id: 'id: 1',
     name: 'Admin User',
     email: 'admin@example.com',
     role: 'admin',
   },
   {
-    id: 2,
+    id: 'id: 2',
     name: 'Target User',
     email: 'target@example.com',
     role: 'employee',

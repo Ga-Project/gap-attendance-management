@@ -11,7 +11,7 @@ module Api
         attendances = query_service.fetch_attendances_with_filtering
         render json: { attendances: AttendanceSerializer.serialize_collection(attendances) }
       rescue Date::Error
-        render json: { error: 'Invalid date format. Use YYYY-MM-DD' }, status: :bad_request
+        render_error('Invalid date format. Use YYYY-MM-DD', :bad_request)
       end
 
       # GET /api/v1/attendances/statistics
@@ -39,7 +39,7 @@ module Api
 
         render_monthly_data(query_service, year, month)
       rescue Date::Error, ArgumentError
-        render json: { error: 'Invalid year or month' }, status: :bad_request
+        render_error('Invalid year or month', :bad_request)
       end
 
       # GET /api/v1/attendances/:id
@@ -62,24 +62,32 @@ module Api
       def clock_in
         result = attendance_service.clock_in(@today_attendance)
         handle_service_result(result)
+      rescue ServiceErrors::InvalidStateError => e
+        render_error(e.message, :unprocessable_entity)
       end
 
       # POST /api/v1/attendances/clock_out
       def clock_out
         result = attendance_service.clock_out(@today_attendance)
         handle_service_result(result)
+      rescue ServiceErrors::InvalidStateError => e
+        render_error(e.message, :unprocessable_entity)
       end
 
       # POST /api/v1/attendances/break_start
       def break_start
         result = attendance_service.start_break(@today_attendance)
         handle_service_result(result)
+      rescue ServiceErrors::InvalidStateError => e
+        render_error(e.message, :unprocessable_entity)
       end
 
       # POST /api/v1/attendances/break_end
       def break_end
         result = attendance_service.end_break(@today_attendance)
         handle_service_result(result)
+      rescue ServiceErrors::InvalidStateError => e
+        render_error(e.message, :unprocessable_entity)
       end
 
       private
@@ -130,7 +138,7 @@ module Api
 
       def invalid_year_month?(year, month)
         if year <= 0 || month <= 0 || month > 12
-          render json: { error: 'Invalid year or month' }, status: :bad_request
+          render_error('Invalid year or month', :bad_request)
           true
         else
           false
@@ -158,30 +166,20 @@ module Api
       end
 
       def handle_service_result(result)
-        if result[:success]
-          render json: {
-            message: result[:message],
-            attendance: AttendanceSerializer.serialize(@today_attendance.reload),
-          }
-        else
-          render_error(result[:error], result[:details])
-        end
+        render json: {
+          message: result[:message],
+          attendance: AttendanceSerializer.serialize(@today_attendance.reload),
+        }
       end
 
       def set_attendance
         @attendance = current_user.attendances.find(params[:id])
       rescue ActiveRecord::RecordNotFound
-        render json: { error: 'Attendance record not found' }, status: :not_found
+        render_error('Attendance record not found', :not_found)
       end
 
       def find_or_create_today_attendance
         @today_attendance = attendance_service.find_or_create_today_attendance
-      end
-
-      def render_error(message, details = nil)
-        error_response = { error: message }
-        error_response[:details] = details if details
-        render json: error_response, status: :unprocessable_entity
       end
     end
   end

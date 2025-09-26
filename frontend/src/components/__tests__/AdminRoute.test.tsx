@@ -6,14 +6,14 @@ import { AuthContext } from '../../contexts/AuthContext';
 import { User } from '../../types';
 
 const mockEmployeeUser: User = {
-  id: 1,
+  id: '1',
   name: 'Test Employee',
   email: 'employee@example.com',
   role: 'employee',
 };
 
 const mockAdminUser: User = {
-  id: 2,
+  id: '2',
   name: 'Test Admin',
   email: 'admin@example.com',
   role: 'admin',
@@ -37,6 +37,7 @@ describe('AdminRoute', () => {
       signOut: jest.fn(),
       loading: false,
       isAuthenticated: true,
+      error: null,
     };
 
     renderWithRouter(
@@ -57,6 +58,7 @@ describe('AdminRoute', () => {
       signOut: jest.fn(),
       loading: false,
       isAuthenticated: true,
+      error: null,
     };
 
     renderWithRouter(
@@ -77,6 +79,7 @@ describe('AdminRoute', () => {
       signOut: jest.fn(),
       loading: false,
       isAuthenticated: false,
+      error: null,
     };
 
     renderWithRouter(
@@ -97,6 +100,7 @@ describe('AdminRoute', () => {
       signOut: jest.fn(),
       loading: true,
       isAuthenticated: false,
+      error: null,
     };
 
     renderWithRouter(

@@ -131,7 +131,7 @@ RSpec.describe Api::V1::AdminController, type: :controller do
 
       expect(response).to have_http_status(:not_found)
       json_response = JSON.parse(response.body)
-      expect(json_response['error']).to eq('Attendance record not found')
+      expect(json_response['error']['message']).to eq('Attendance record not found')
     end
 
     it 'returns error when reason is missing' do

@@ -8,7 +8,6 @@ import {
     Grid,
     Chip,
     Alert,
-    Snackbar,
     CircularProgress,
     Divider,
 } from '@mui/material';
@@ -20,27 +19,18 @@ import {
     PlayCircle,
 } from '@mui/icons-material';
 import AttendanceService from '../services/attendance';
+import useErrorHandler from '../hooks/useErrorHandler';
 import { TodayAttendanceResponse, AttendanceActionResponse } from '../types';
 
 interface TimeClockWidgetProps {
     onAttendanceUpdate?: (attendance: TodayAttendanceResponse) => void;
 }
 
-interface SnackbarState {
-    open: boolean;
-    message: string;
-    severity: 'success' | 'error' | 'info' | 'warning';
-}
-
 const TimeClockWidget: React.FC<TimeClockWidgetProps> = ({ onAttendanceUpdate }) => {
     const [attendanceData, setAttendanceData] = useState<TodayAttendanceResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
-    const [snackbar, setSnackbar] = useState<SnackbarState>({
-        open: false,
-        message: '',
-        severity: 'success',
-    });
+    const { handleAsyncError } = useErrorHandler();
 
     useEffect(() => {
         loadTodayAttendance();
@@ -48,52 +38,40 @@ const TimeClockWidget: React.FC<TimeClockWidgetProps> = ({ onAttendanceUpdate })
     }, []);
 
     const loadTodayAttendance = async (): Promise<void> => {
-        try {
-            setLoading(true);
-            const data = await AttendanceService.getTodayAttendance();
+        setLoading(true);
+        const data = await handleAsyncError(
+            () => AttendanceService.getTodayAttendance(),
+            'Load today attendance',
+            false, // Don't show notification for loading errors
+        );
+        
+        if (data) {
             setAttendanceData(data);
             onAttendanceUpdate?.(data);
-        } catch (error) {
-            showSnackbar('勤怠データの取得に失敗しました', 'error');
-            // eslint-disable-next-line no-console
-            console.error('Failed to load today attendance:', error);
-        } finally {
-            setLoading(false);
         }
+        setLoading(false);
     };
 
     const handleAction = async (
         action: () => Promise<AttendanceActionResponse>,
         actionType: string,
     ): Promise<void> => {
-        try {
-            setActionLoading(actionType);
-            const response = await action();
-            showSnackbar(response.message, 'success');
-
+        setActionLoading(actionType);
+        
+        const response = await handleAsyncError(
+            action,
+            actionType,
+        );
+        
+        if (response) {
             // Reload attendance data to get updated state
             await loadTodayAttendance();
-        } catch (error: any) {
-            const errorMessage = error.response?.data?.error || `${actionType}に失敗しました`;
-            showSnackbar(errorMessage, 'error');
-            // eslint-disable-next-line no-console
-            console.error(`${actionType} failed:`, error);
-        } finally {
-            setActionLoading(null);
         }
+        
+        setActionLoading(null);
     };
 
-    const showSnackbar = (message: string, severity: SnackbarState['severity']): void => {
-        setSnackbar({
-            open: true,
-            message,
-            severity,
-        });
-    };
 
-    const handleCloseSnackbar = (): void => {
-        setSnackbar(prev => ({ ...prev, open: false }));
-    };
 
     const getStatusColor = (status: string): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
         switch (status) {
@@ -301,21 +279,7 @@ const TimeClockWidget: React.FC<TimeClockWidgetProps> = ({ onAttendanceUpdate })
                 </CardContent>
             </Card>
 
-            {/* Snackbar for notifications */}
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={4000}
-                onClose={handleCloseSnackbar}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            >
-                <Alert
-                    onClose={handleCloseSnackbar}
-                    severity={snackbar.severity}
-                    sx={{ width: '100%' }}
-                >
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
+
         </>
     );
 };

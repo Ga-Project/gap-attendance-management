@@ -23,7 +23,7 @@ const theme = createTheme();
 
 describe('Dashboard', () => {
   const mockUser = {
-    id: 1,
+    id: 'id: 1',
     name: 'Test User',
     email: 'test@example.com',
     role: 'employee' as const,
@@ -35,6 +35,7 @@ describe('Dashboard', () => {
     signOut: jest.fn(),
     loading: false,
     isAuthenticated: true,
+      error: null,
   };
 
   const renderWithProviders = (component: React.ReactElement) => {

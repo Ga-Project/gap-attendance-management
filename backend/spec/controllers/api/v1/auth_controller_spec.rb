@@ -70,7 +70,7 @@ RSpec.describe Api::V1::AuthController, type: :controller do
 
         expect(response).to have_http_status(:unauthorized)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('Invalid Google ID token')
+        expect(json_response['error']['message']).to eq('Invalid Google ID token')
       end
     end
 
@@ -80,7 +80,7 @@ RSpec.describe Api::V1::AuthController, type: :controller do
 
         expect(response).to have_http_status(:not_implemented)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('Server-side OAuth flow not implemented yet')
+        expect(json_response['error']['message']).to eq('Server-side OAuth flow not implemented yet')
       end
     end
 
@@ -90,7 +90,7 @@ RSpec.describe Api::V1::AuthController, type: :controller do
 
         expect(response).to have_http_status(:bad_request)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('Missing authentication parameters')
+        expect(json_response['error']['message']).to eq('Missing authentication parameters')
       end
     end
   end
@@ -117,7 +117,7 @@ RSpec.describe Api::V1::AuthController, type: :controller do
 
         expect(response).to have_http_status(:unauthorized)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('Invalid refresh token')
+        expect(json_response['error']['message']).to eq('Invalid refresh token')
       end
 
       it 'returns unauthorized for access token instead of refresh token' do
@@ -127,7 +127,7 @@ RSpec.describe Api::V1::AuthController, type: :controller do
 
         expect(response).to have_http_status(:unauthorized)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('Invalid refresh token')
+        expect(json_response['error']['message']).to eq('Invalid refresh token')
       end
     end
 
@@ -137,7 +137,7 @@ RSpec.describe Api::V1::AuthController, type: :controller do
 
         expect(response).to have_http_status(:bad_request)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('Refresh token required')
+        expect(json_response['error']['message']).to eq('Refresh token required')
       end
     end
   end

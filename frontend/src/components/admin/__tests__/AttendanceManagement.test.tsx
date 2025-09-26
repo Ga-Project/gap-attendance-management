@@ -41,9 +41,9 @@ const renderWithTheme = (component: React.ReactElement) => {
 
 const mockAttendances = [
   {
-    id: 1,
+    id: 'id: 1',
     user: {
-      id: 1,
+      id: 'id: 1',
       name: 'Test User',
       email: 'test@example.com',
     },
