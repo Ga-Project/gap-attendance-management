@@ -68,16 +68,15 @@ RSpec.describe AttendanceService, type: :service do
     context 'when user cannot clock in' do
       let(:attendance) { create(:attendance, user: user, status: :clocked_in) }
 
-      it 'returns error message' do
-        result = service.clock_in(attendance)
-
-        expect(result[:error]).to eq('Already clocked in today')
-        expect(result[:success]).to be_nil
+      it 'raises InvalidStateError' do
+        expect do
+          service.clock_in(attendance)
+        end.to raise_error(ServiceErrors::InvalidStateError, 'Already clocked in today')
       end
 
       it 'does not create attendance record' do
         expect do
-          service.clock_in(attendance)
+          expect { service.clock_in(attendance) }.to raise_error(ServiceErrors::InvalidStateError)
         end.not_to(change { attendance.attendance_records.count })
       end
     end
@@ -88,11 +87,11 @@ RSpec.describe AttendanceService, type: :service do
         allow(attendance.errors).to receive(:full_messages).and_return(['Test error'])
       end
 
-      it 'returns validation error' do
-        result = service.clock_in(attendance)
-
-        expect(result[:error]).to eq('Validation failed')
-        expect(result[:details]).to eq(['Test error'])
+      it 'raises AttendanceError' do
+        expect { service.clock_in(attendance) }.to raise_error(ServiceErrors::AttendanceError) do |error|
+          expect(error.message).to eq('Validation failed')
+          expect(error.details).to eq(['Test error'])
+        end
       end
     end
   end
@@ -162,10 +161,11 @@ RSpec.describe AttendanceService, type: :service do
     context 'when user cannot clock out' do
       let(:attendance) { create(:attendance, user: user, status: :not_started) }
 
-      it 'returns error message' do
-        result = service.clock_out(attendance)
-
-        expect(result[:error]).to eq('Cannot clock out. Must be clocked in first')
+      it 'raises InvalidStateError' do
+        expect do
+          service.clock_out(attendance)
+        end.to raise_error(ServiceErrors::InvalidStateError,
+                           'Cannot clock out. Must be clocked in first')
       end
     end
   end
@@ -199,10 +199,11 @@ RSpec.describe AttendanceService, type: :service do
     context 'when user cannot start break' do
       let(:attendance) { create(:attendance, user: user, status: :not_started) }
 
-      it 'returns error message' do
-        result = service.start_break(attendance)
-
-        expect(result[:error]).to eq('Cannot start break. Must be clocked in first')
+      it 'raises InvalidStateError' do
+        expect do
+          service.start_break(attendance)
+        end.to raise_error(ServiceErrors::InvalidStateError,
+                           'Cannot start break. Must be clocked in first')
       end
     end
   end
@@ -251,10 +252,11 @@ RSpec.describe AttendanceService, type: :service do
     context 'when user cannot end break' do
       let(:attendance) { create(:attendance, user: user, status: :clocked_in) }
 
-      it 'returns error message' do
-        result = service.end_break(attendance)
-
-        expect(result[:error]).to eq('Cannot end break. Must be on break first')
+      it 'raises InvalidStateError' do
+        expect do
+          service.end_break(attendance)
+        end.to raise_error(ServiceErrors::InvalidStateError,
+                           'Cannot end break. Must be on break first')
       end
     end
 
@@ -321,11 +323,11 @@ RSpec.describe AttendanceService, type: :service do
         allow(attendance).to receive(:update!).and_raise(StandardError.new('Database connection failed'))
       end
 
-      it 'returns generic error message' do
-        result = service.clock_in(attendance)
-
-        expect(result[:error]).to eq('Failed to clock in')
-        expect(result[:details]).to eq('Database connection failed')
+      it 'raises AttendanceError' do
+        expect { service.clock_in(attendance) }.to raise_error(ServiceErrors::AttendanceError) do |error|
+          expect(error.message).to eq('Attendance operation failed')
+          expect(error.details).to eq('Database connection failed')
+        end
       end
     end
   end
@@ -341,7 +343,7 @@ RSpec.describe AttendanceService, type: :service do
       it 'rolls back attendance status change' do
         original_status = attendance.status
 
-        service.clock_in(attendance)
+        expect { service.clock_in(attendance) }.to raise_error(ServiceErrors::AttendanceError)
 
         attendance.reload
         expect(attendance.status).to eq(original_status)

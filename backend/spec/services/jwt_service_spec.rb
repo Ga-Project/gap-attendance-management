@@ -34,17 +34,15 @@ RSpec.describe JwtService, type: :service do
       expect(decoded['email']).to eq(user.email)
     end
 
-    it 'returns nil for invalid token' do
-      result = JwtService.decode('invalid_token')
-      expect(result).to be_nil
+    it 'raises JWT::DecodeError for invalid token' do
+      expect { JwtService.decode('invalid_token') }.to raise_error(JWT::DecodeError)
     end
 
-    it 'returns nil for expired token' do
+    it 'raises JWT::ExpiredSignature for expired token' do
       payload = { user_id: user.id }
       expired_token = JwtService.encode(payload, 1.hour.ago)
 
-      result = JwtService.decode(expired_token)
-      expect(result).to be_nil
+      expect { JwtService.decode(expired_token) }.to raise_error(JWT::ExpiredSignature)
     end
   end
 
@@ -79,17 +77,15 @@ RSpec.describe JwtService, type: :service do
       expect(verified_user).to eq(user)
     end
 
-    it 'returns nil for invalid token' do
-      result = JwtService.verify_token('invalid_token')
-      expect(result).to be_nil
+    it 'raises JWT::DecodeError for invalid token' do
+      expect { JwtService.verify_token('invalid_token') }.to raise_error(JWT::DecodeError)
     end
 
-    it 'returns nil for token with non-existent user' do
+    it 'raises TokenError for token with non-existent user' do
       payload = { user_id: 99_999, email: 'nonexistent@example.com' }
       token = JwtService.encode(payload)
 
-      result = JwtService.verify_token(token)
-      expect(result).to be_nil
+      expect { JwtService.verify_token(token) }.to raise_error(ServiceErrors::TokenError)
     end
   end
 
@@ -99,15 +95,15 @@ RSpec.describe JwtService, type: :service do
       expect(JwtService.token_expired?(token)).to be_falsey
     end
 
-    it 'returns true for expired token' do
+    it 'raises JWT::ExpiredSignature for expired token' do
       payload = { user_id: user.id }
       expired_token = JwtService.encode(payload, 1.hour.ago)
 
-      expect(JwtService.token_expired?(expired_token)).to be_truthy
+      expect { JwtService.token_expired?(expired_token) }.to raise_error(JWT::ExpiredSignature)
     end
 
-    it 'returns true for invalid token' do
-      expect(JwtService.token_expired?('invalid_token')).to be_truthy
+    it 'raises JWT::DecodeError for invalid token' do
+      expect { JwtService.token_expired?('invalid_token') }.to raise_error(JWT::DecodeError)
     end
   end
 end
