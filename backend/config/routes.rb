@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
   # Health check endpoint
   get '/health', to: 'health#check'
+  get '/health/test_error', to: 'health#test_error' unless Rails.env.production?
 
   namespace :api do
     namespace :v1 do
