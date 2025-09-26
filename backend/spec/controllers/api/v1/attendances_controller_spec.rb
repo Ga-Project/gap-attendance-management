@@ -47,7 +47,7 @@ RSpec.describe Api::V1::AttendancesController, type: :controller do
 
       expect(response).to have_http_status(:bad_request)
       json_response = JSON.parse(response.body)
-      expect(json_response['error']).to include('Invalid date format')
+      expect(json_response['error']['message']).to include('Invalid date format')
     end
 
     it 'requires authentication' do
@@ -149,7 +149,7 @@ RSpec.describe Api::V1::AttendancesController, type: :controller do
 
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('Already clocked in today')
+        expect(json_response['error']['message']).to eq('Already clocked in today')
       end
     end
   end
@@ -222,7 +222,7 @@ RSpec.describe Api::V1::AttendancesController, type: :controller do
 
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('Cannot clock out. Must be clocked in first')
+        expect(json_response['error']['message']).to eq('Cannot clock out. Must be clocked in first')
       end
     end
   end
@@ -260,7 +260,7 @@ RSpec.describe Api::V1::AttendancesController, type: :controller do
 
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('Cannot start break. Must be clocked in first')
+        expect(json_response['error']['message']).to eq('Cannot start break. Must be clocked in first')
       end
     end
 
@@ -278,7 +278,7 @@ RSpec.describe Api::V1::AttendancesController, type: :controller do
 
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('Cannot start break. Must be clocked in first')
+        expect(json_response['error']['message']).to eq('Cannot start break. Must be clocked in first')
       end
     end
   end
@@ -332,7 +332,7 @@ RSpec.describe Api::V1::AttendancesController, type: :controller do
 
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('Cannot end break. Must be on break first')
+        expect(json_response['error']['message']).to eq('Cannot end break. Must be on break first')
       end
     end
   end
@@ -343,7 +343,7 @@ RSpec.describe Api::V1::AttendancesController, type: :controller do
 
       expect(response).to have_http_status(:unprocessable_entity)
       json_response = JSON.parse(response.body)
-      expect(json_response['error']).to eq('Cannot clock out. Must be clocked in first')
+      expect(json_response['error']['message']).to eq('Cannot clock out. Must be clocked in first')
     end
 
     it 'prevents break_start before clock_in' do
@@ -351,7 +351,7 @@ RSpec.describe Api::V1::AttendancesController, type: :controller do
 
       expect(response).to have_http_status(:unprocessable_entity)
       json_response = JSON.parse(response.body)
-      expect(json_response['error']).to eq('Cannot start break. Must be clocked in first')
+      expect(json_response['error']['message']).to eq('Cannot start break. Must be clocked in first')
     end
 
     it 'prevents break_end when not on break' do
@@ -359,7 +359,7 @@ RSpec.describe Api::V1::AttendancesController, type: :controller do
 
       expect(response).to have_http_status(:unprocessable_entity)
       json_response = JSON.parse(response.body)
-      expect(json_response['error']).to eq('Cannot end break. Must be on break first')
+      expect(json_response['error']['message']).to eq('Cannot end break. Must be on break first')
     end
 
     it 'prevents duplicate clock_in' do
@@ -371,7 +371,7 @@ RSpec.describe Api::V1::AttendancesController, type: :controller do
       post :clock_in
       expect(response).to have_http_status(:unprocessable_entity)
       json_response = JSON.parse(response.body)
-      expect(json_response['error']).to eq('Already clocked in today')
+      expect(json_response['error']['message']).to eq('Already clocked in today')
     end
   end
 
@@ -507,7 +507,7 @@ RSpec.describe Api::V1::AttendancesController, type: :controller do
 
       expect(response).to have_http_status(:bad_request)
       json_response = JSON.parse(response.body)
-      expect(json_response['error']).to eq('Invalid year or month')
+      expect(json_response['error']['message']).to eq('Invalid year or month')
     end
   end
 
