@@ -1,0 +1,62 @@
+# Multi-stage build for production
+FROM ruby:3.2.0-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache \
+    build-base \
+    postgresql-dev \
+    git \
+    nodejs \
+    npm
+
+# Set working directory
+WORKDIR /app
+
+# Copy Gemfile and Gemfile.lock
+COPY Gemfile* ./
+
+# Install gems for production
+RUN bundle config set --local deployment 'true' && \
+    bundle config set --local without 'development test' && \
+    bundle install --jobs 4 --retry 3
+
+# Production stage
+FROM ruby:3.2.0-alpine
+
+# Install runtime dependencies
+RUN apk add --no-cache \
+    postgresql-client \
+    tzdata \
+    bash
+
+# Create app user
+RUN addgroup -g 1000 -S app && \
+    adduser -u 1000 -S app -G app
+
+# Set working directory
+WORKDIR /app
+
+# Copy gems from builder stage
+COPY --from=builder /usr/local/bundle /usr/local/bundle
+
+# Copy application code
+COPY --chown=app:app . .
+
+# Set ownership
+RUN chown -R app:app /app
+
+# Switch to app user
+USER app
+
+# Precompile assets (if any)
+RUN RAILS_ENV=production SECRET_KEY_BASE=dummy bundle exec rails assets:precompile 2>/dev/null || true
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000/health || exit 1
+
+# Start the Rails server
+CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0", "-e", "production"]
