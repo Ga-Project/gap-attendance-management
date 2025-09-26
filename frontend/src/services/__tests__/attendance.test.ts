@@ -128,14 +128,14 @@ describe('AttendanceService', () => {
     it('fetches attendances with date range parameters', async () => {
       mockedApi.get.mockResolvedValue(mockAttendancesResponse);
 
-      const params = {
-        start_date: '2025-01-01',
-        end_date: '2025-01-31',
-      };
+      const startDate = '2025-01-01';
+      const endDate = '2025-01-31';
 
-      const result = await AttendanceService.getAttendances(params);
+      const result = await AttendanceService.getAttendances(startDate, endDate);
 
-      expect(mockedApi.get).toHaveBeenCalledWith('/v1/attendances', { params });
+      expect(mockedApi.get).toHaveBeenCalledWith('/v1/attendances', { 
+        params: { start_date: startDate, end_date: endDate }, 
+      });
       expect(result).toEqual(mockAttendancesResponse.data);
     });
 
@@ -174,8 +174,7 @@ describe('AttendanceService', () => {
       const error = new Error('API Error');
       mockedApi.get.mockRejectedValue(error);
 
-      const params = { start_date: '2025-01-01', end_date: '2025-01-31' };
-      await expect(AttendanceService.getStatistics(params)).rejects.toThrow('API Error');
+      await expect(AttendanceService.getStatistics('2025-01-01', '2025-01-31')).rejects.toThrow('API Error');
     });
   });
 
