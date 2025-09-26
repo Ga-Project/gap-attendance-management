@@ -11,16 +11,23 @@ class HealthController < ApplicationController
 
   # Test endpoint for error handling (development only)
   def test_error
-    return render json: { error: 'Not available in production' }, status: :forbidden if Rails.env.production?
+    return render_production_error if Rails.env.production?
 
-    error_type = params[:type]
+    trigger_test_error(params[:type])
+  end
 
+  private
+
+  def render_production_error
+    render json: { error: 'Not available in production' }, status: :forbidden
+  end
+
+  def trigger_test_error(error_type)
     case error_type
     when 'not_found'
       raise ActiveRecord::RecordNotFound, 'Test record not found'
     when 'validation'
-      user = User.new
-      user.save!
+      trigger_validation_error
     when 'authentication'
       raise ServiceErrors::GoogleAuthError, 'Test authentication error'
     when 'business_logic'
@@ -30,5 +37,10 @@ class HealthController < ApplicationController
     else
       raise StandardError, 'Test internal server error'
     end
+  end
+
+  def trigger_validation_error
+    user = User.new
+    user.save!
   end
 end
