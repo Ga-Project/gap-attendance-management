@@ -43,25 +43,35 @@ module Api
       private
 
       def validate_and_find_user(refresh_token)
-        begin
-          decoded_token = JwtService.decode(refresh_token)
-        rescue JWT::DecodeError, JWT::ExpiredSignature
-          render_error('Invalid refresh token', :unauthorized)
-          return nil
-        end
+        decoded_token = decode_refresh_token(refresh_token)
+        return nil unless decoded_token
 
-        unless decoded_token && decoded_token['type'] == 'refresh'
-          render_error('Invalid refresh token', :unauthorized)
-          return nil
-        end
+        validated_token = validate_token_type(decoded_token)
+        return nil unless validated_token
 
+        find_user_from_token(validated_token)
+      end
+
+      def decode_refresh_token(refresh_token)
+        JwtService.decode(refresh_token)
+      rescue JWT::DecodeError, JWT::ExpiredSignature
+        render_error('Invalid refresh token', :unauthorized)
+        nil
+      end
+
+      def validate_token_type(decoded_token)
+        return decoded_token if decoded_token && decoded_token['type'] == 'refresh'
+
+        render_error('Invalid refresh token', :unauthorized)
+        nil
+      end
+
+      def find_user_from_token(decoded_token)
         user = User.find_by(id: decoded_token['user_id'])
-        unless user
-          render_error('User not found', :unauthorized)
-          return nil
-        end
+        return user if user
 
-        user
+        render_error('User not found', :unauthorized)
+        nil
       end
 
       def handle_client_side_auth
