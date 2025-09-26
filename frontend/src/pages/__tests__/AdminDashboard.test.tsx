@@ -27,7 +27,7 @@ jest.mock('../../components/admin/AuditLogs', () => {
 const theme = createTheme();
 
 const mockAdminUser = {
-  id: 1,
+  id: 'id: 1',
   name: 'Admin User',
   email: 'admin@example.com',
   role: 'admin' as const,
@@ -39,6 +39,7 @@ const mockAuthContextValue = {
   signOut: jest.fn(),
   loading: false,
   isAuthenticated: true,
+      error: null,
 };
 
 const renderWithProviders = (component: React.ReactElement) => {

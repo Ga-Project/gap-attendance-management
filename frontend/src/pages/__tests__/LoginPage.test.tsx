@@ -13,6 +13,7 @@ const mockAuthContextValue = {
   signOut: jest.fn(),
   loading: false,
   isAuthenticated: false,
+      error: null,
 };
 
 const renderWithProviders = (component: React.ReactElement) => {
@@ -154,12 +155,13 @@ describe('LoginPage', () => {
     const authenticatedContext = {
       ...mockAuthContextValue,
       user: {
-        id: 1,
+        id: 'id: 1',
         name: 'Test User',
         email: 'test@example.com',
         role: 'employee' as const,
       },
       isAuthenticated: true,
+      error: null,
     };
 
     render(
