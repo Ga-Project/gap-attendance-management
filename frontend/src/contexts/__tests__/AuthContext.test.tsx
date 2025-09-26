@@ -127,8 +127,7 @@ describe('AuthContext', () => {
   });
 
   it('handles login error', async () => {
-    const error = new Error('Login failed');
-    mockedGoogleAuth.signIn.mockRejectedValue(error);
+    mockedGoogleAuth.signIn.mockRejectedValue(new Error('Login failed'));
 
     render(
       <AuthProvider>
