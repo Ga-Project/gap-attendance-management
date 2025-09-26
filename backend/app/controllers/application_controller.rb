@@ -1,4 +1,6 @@
 class ApplicationController < ActionController::API
+  include ErrorHandler
+
   before_action :authenticate_request, except: [:health_check]
 
   protected
@@ -10,9 +12,9 @@ class ApplicationController < ActionController::API
     if token
       @current_user = JwtService.verify_token(token)
 
-      render json: { error: 'Invalid or expired token' }, status: :unauthorized unless @current_user
+      render_error('Invalid or expired token', :unauthorized) unless @current_user
     else
-      render json: { error: 'Authorization token required' }, status: :unauthorized
+      render_error('Authorization token required', :unauthorized)
     end
   end
 
@@ -25,7 +27,7 @@ class ApplicationController < ActionController::API
   def require_admin
     return if @current_user&.admin?
 
-    render json: { error: 'Admin access required' }, status: :forbidden
+    render_error('Admin access required', :forbidden)
   end
 
   # Get current authenticated user

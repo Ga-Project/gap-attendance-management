@@ -70,7 +70,7 @@ module Api
           }, status: :unprocessable_entity
         end
       rescue ActiveRecord::RecordNotFound
-        render json: { error: 'Attendance record not found' }, status: :not_found
+        render_error('Attendance record not found', :not_found)
       end
 
       # Get audit logs with filtering
