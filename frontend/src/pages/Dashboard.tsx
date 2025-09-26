@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
     Container,
     Paper,
@@ -43,11 +43,11 @@ const Dashboard: React.FC = () => {
         }
     };
 
-    const handleAttendanceUpdate = (data: TodayAttendanceResponse): void => {
+    const handleAttendanceUpdate = useCallback((data: TodayAttendanceResponse): void => {
         // Handle attendance updates if needed in the future
         // eslint-disable-next-line no-console
         console.log('Attendance updated:', data);
-    };
+    }, []);
 
     return (
         <>
