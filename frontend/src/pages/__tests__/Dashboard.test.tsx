@@ -7,25 +7,7 @@ import { AuthContext } from '../../contexts/AuthContext';
 
 // Mock the TimeClockWidget component
 jest.mock('../../components/TimeClockWidget', () => {
-  const mockReact = require('react');
-  return function MockTimeClockWidget({ onAttendanceUpdate }: any) {
-    mockReact.useEffect(() => {
-      if (onAttendanceUpdate) {
-        onAttendanceUpdate({
-          attendance: {
-            id: 1,
-            date: '2025-01-15',
-            status: 'clocked_in',
-            clock_in_time: '2025-01-15T09:00:00Z',
-            total_work_minutes: 120,
-            formatted_work_time: '02:00',
-          },
-          can_clock_in: false,
-          can_clock_out: true,
-        });
-      }
-    }, [onAttendanceUpdate]);
-
+  return function MockTimeClockWidget() {
     return <div data-testid="time-clock-widget">TimeClockWidget</div>;
   };
 });
