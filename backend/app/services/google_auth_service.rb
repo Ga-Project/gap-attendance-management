@@ -19,37 +19,52 @@ class GoogleAuthService
       raise ServiceErrors::GoogleAuthError, 'ID token is required' if id_token.blank?
 
       begin
-        # This would typically use Google's API to verify the token
-        # For now, we'll implement a basic structure
-        # In production, you'd use Google::Auth::IDTokens.verify_oidc
-
-        # Placeholder implementation - replace with actual Google token verification
-        decoded_token = JWT.decode(id_token, nil, false)
-        token_data = decoded_token[0]
-
-        unless token_data['aud'] == ENV['GOOGLE_CLIENT_ID']
-          raise ServiceErrors::GoogleAuthError,
-                'Invalid token audience'
-        end
-
-        {
-          'uid' => token_data['sub'],
-          'info' => {
-            'email' => token_data['email'],
-            'name' => token_data['name'],
-            'image' => token_data['picture'],
-          },
-        }
+        token_data = decode_google_token(id_token)
+        validate_token_audience(token_data)
+        build_auth_data(token_data)
       rescue JWT::DecodeError => e
-        Rails.logger.error "Google ID Token verification failed: #{e.message}"
-        raise ServiceErrors::GoogleAuthError.new('Invalid Google ID token', details: e.message)
+        handle_jwt_decode_error(e)
       rescue StandardError => e
-        Rails.logger.error "Google token verification error: #{e.message}"
-        raise ServiceErrors::GoogleApiError.new('Google service unavailable', details: e.message)
+        handle_verification_error(e)
       end
     end
 
     private
+
+    def decode_google_token(id_token)
+      # This would typically use Google's API to verify the token
+      # For now, we'll implement a basic structure
+      # In production, you'd use Google::Auth::IDTokens.verify_oidc
+      decoded_token = JWT.decode(id_token, nil, false)
+      decoded_token[0]
+    end
+
+    def validate_token_audience(token_data)
+      return if token_data['aud'] == ENV['GOOGLE_CLIENT_ID']
+
+      raise ServiceErrors::GoogleAuthError, 'Invalid token audience'
+    end
+
+    def build_auth_data(token_data)
+      {
+        'uid' => token_data['sub'],
+        'info' => {
+          'email' => token_data['email'],
+          'name' => token_data['name'],
+          'image' => token_data['picture'],
+        },
+      }
+    end
+
+    def handle_jwt_decode_error(error)
+      Rails.logger.error "Google ID Token verification failed: #{error.message}"
+      raise ServiceErrors::GoogleAuthError.new('Invalid Google ID token', details: error.message)
+    end
+
+    def handle_verification_error(error)
+      Rails.logger.error "Google token verification error: #{error.message}"
+      raise ServiceErrors::GoogleApiError.new('Google service unavailable', details: error.message)
+    end
 
     def valid_auth_data?(auth_data)
       auth_data&.dig('info')
