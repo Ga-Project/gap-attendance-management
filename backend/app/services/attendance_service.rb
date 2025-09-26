@@ -1,5 +1,7 @@
 # Service class for attendance business logic
 class AttendanceService
+  include ServiceErrors
+
   def initialize(user, attendance = nil)
     @user = user
     @attendance = attendance
@@ -14,34 +16,43 @@ class AttendanceService
   end
 
   def clock_in(attendance)
-    return { error: 'Already clocked in today' } unless attendance.can_clock_in?
+    unless attendance.can_clock_in?
+      Rails.logger.error 'Clock in validation failed: Already clocked in today'
+      raise ServiceErrors::InvalidStateError, 'Already clocked in today'
+    end
 
-    execute_attendance_action('Successfully clocked in', 'Failed to clock in') do
+    execute_attendance_action('Successfully clocked in') do
       perform_clock_in(attendance)
     end
   end
 
   def clock_out(attendance)
-    return { error: 'Cannot clock out. Must be clocked in first' } unless attendance.can_clock_out?
+    unless attendance.can_clock_out?
+      raise ServiceErrors::InvalidStateError,
+            'Cannot clock out. Must be clocked in first'
+    end
 
-    execute_attendance_action('Successfully clocked out', 'Failed to clock out') do
+    execute_attendance_action('Successfully clocked out') do
       perform_clock_out(attendance)
     end
   end
 
   def start_break(attendance)
-    return { error: 'Cannot start break. Must be clocked in first' } unless attendance.can_start_break?
+    unless attendance.can_start_break?
+      raise ServiceErrors::InvalidStateError,
+            'Cannot start break. Must be clocked in first'
+    end
 
-    execute_attendance_action('Break started', 'Failed to start break') do
+    execute_attendance_action('Break started') do
       attendance.update!(status: :on_break)
       create_attendance_record(attendance, :break_start)
     end
   end
 
   def end_break(attendance)
-    return { error: 'Cannot end break. Must be on break first' } unless attendance.can_end_break?
+    raise ServiceErrors::InvalidStateError, 'Cannot end break. Must be on break first' unless attendance.can_end_break?
 
-    execute_attendance_action('Break ended', 'Failed to end break') do
+    execute_attendance_action('Break ended') do
       calculate_and_add_break_time(attendance)
       attendance.update!(status: :clocked_in)
       create_attendance_record(attendance, :break_end)
@@ -50,14 +61,14 @@ class AttendanceService
 
   private
 
-  def execute_attendance_action(success_message, error_message, &)
+  def execute_attendance_action(success_message, &)
     ActiveRecord::Base.transaction(&)
-
     { success: true, message: success_message }
   rescue ActiveRecord::RecordInvalid => e
-    { error: 'Validation failed', details: e.record.errors.full_messages }
+    raise ServiceErrors::AttendanceError.new('Validation failed', details: e.record.errors.full_messages)
   rescue StandardError => e
-    { error: error_message, details: e.message }
+    Rails.logger.error "Attendance action failed: #{e.message}"
+    raise ServiceErrors::AttendanceError.new('Attendance operation failed', details: e.message)
   end
 
   def perform_clock_in(attendance)
